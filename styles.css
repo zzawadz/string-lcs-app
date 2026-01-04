@@ -336,6 +336,29 @@ button:active {
     margin-top: 15px;
 }
 
+/* Alignment highlighting - matching side-by-side colors */
+.align-mismatch {
+    background-color: #e0e0d1;
+    padding: 0;
+}
+
+.align-gap-string2 {
+    background-color: #ffcccc;
+    padding: 0;
+}
+
+.align-gap-string1 {
+    background-color: #ccffcc;
+    padding: 0;
+}
+
+.align-match {
+    background-color: #cce5ff;
+    font-weight: bold;
+    padding: 0;
+}
+
+/* Legacy classes for backwards compatibility */
 .match {
     color: #2ecc71;
     font-weight: bold;
@@ -373,16 +396,268 @@ button:active {
     margin-right: 5px;
 }
 
-.legend-mismatch {
-    background-color: #e0e0d1;
+/* Accessibility Controls */
+.accessibility-controls {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
 }
 
-.legend-gap-string2 {
-    background-color: #ffff99;
+.accessibility-button {
+    background: white;
+    border: 2px solid #667eea;
+    color: #667eea;
+    padding: 8px 16px;
+    font-size: 0.9em;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 600;
+    transition: all 0.3s;
 }
 
-.legend-gap-string1 {
-    background-color: #99bbff;
+.accessibility-button:hover {
+    background: #667eea;
+    color: white;
+    transform: translateY(-1px);
+}
+
+.accessibility-button:focus {
+    outline: 3px solid #667eea;
+    outline-offset: 2px;
+}
+
+.accessibility-button:active {
+    transform: translateY(0);
+}
+
+/* Keyboard hint */
+.keyboard-hint {
+    font-size: 0.75em;
+    opacity: 0.8;
+    margin-left: 8px;
+}
+
+/* Enhanced Focus Indicators */
+button:focus,
+textarea:focus,
+select:focus {
+    outline: 3px solid #667eea;
+    outline-offset: 2px;
+}
+
+button:focus:not(:focus-visible) {
+    outline: none;
+}
+
+button:focus-visible {
+    outline: 3px solid #667eea;
+    outline-offset: 2px;
+}
+
+textarea:focus-visible,
+select:focus-visible {
+    outline: 3px solid #667eea;
+    outline-offset: 2px;
+    border-color: #667eea;
+}
+
+/* High Contrast Mode */
+body.high-contrast {
+    background: #000;
+}
+
+body.high-contrast .container {
+    background: #000;
+    border: 3px solid #fff;
+    color: #fff;
+}
+
+body.high-contrast h1,
+body.high-contrast .subtitle,
+body.high-contrast label,
+body.high-contrast .result-title,
+body.high-contrast .lcs-header,
+body.high-contrast .alignment-header,
+body.high-contrast .alignment-label,
+body.high-contrast .alignment-label-spaced,
+body.high-contrast .legend-title {
+    color: #fff;
+}
+
+body.high-contrast .side-by-side-column-header {
+    background: #000;
+    color: #fff;
+    border-bottom-color: #fff;
+}
+
+body.high-contrast .side-by-side-column {
+    border-color: #fff;
+}
+
+body.high-contrast textarea,
+body.high-contrast select {
+    background: #000;
+    color: #fff;
+    border-color: #fff;
+}
+
+body.high-contrast .lcs-display,
+body.high-contrast .alignment-display,
+body.high-contrast .side-by-side-display {
+    background: #000;
+    border-color: #fff;
+}
+
+body.high-contrast .result-section {
+    background: #000;
+}
+
+body.high-contrast .lcs-string {
+    color: #0f0;
+}
+
+body.high-contrast .char-counter,
+body.high-contrast .lcs-length,
+body.high-contrast .legend-content {
+    color: #ccc;
+}
+
+body.high-contrast .alignment-row,
+body.high-contrast .side-by-side-content {
+    color: #fff;
+}
+
+body.high-contrast button {
+    border: 2px solid #fff;
+}
+
+body.high-contrast .accessibility-button {
+    background: #000;
+    color: #fff;
+    border-color: #fff;
+}
+
+body.high-contrast .accessibility-button:hover {
+    background: #fff;
+    color: #000;
+}
+
+/* High contrast alignment styles - consistent with side-by-side */
+body.high-contrast .align-mismatch {
+    background-color: #aa0;
+    color: #fff;
+}
+
+body.high-contrast .align-gap-string2 {
+    background-color: #f00;
+    color: #fff;
+}
+
+body.high-contrast .align-gap-string1 {
+    background-color: #0f0;
+    color: #000;
+}
+
+body.high-contrast .align-match {
+    background-color: #00f;
+    color: #fff;
+}
+
+/* High contrast side-by-side styles */
+body.high-contrast .diff-removed {
+    background-color: #f00;
+    color: #fff;
+}
+
+body.high-contrast .diff-added {
+    background-color: #0f0;
+    color: #000;
+}
+
+body.high-contrast .diff-match {
+    background-color: #00f;
+    color: #fff;
+}
+
+body.high-contrast .error-message {
+    background: #000;
+    border-color: #f00;
+    color: #f00;
+}
+
+body.high-contrast .stale-indicator {
+    background: #000;
+    border-color: #ff0;
+    color: #ff0;
+}
+
+/* Side-by-Side Display */
+.side-by-side-display {
+    background: white;
+    padding: 20px;
+    border-radius: 8px;
+    border: 2px solid #ddd;
+    max-height: 600px;
+    overflow-y: auto;
+}
+
+.side-by-side-header {
+    font-weight: 600;
+    color: #555;
+    margin-bottom: 15px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.side-by-side-container {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    margin-bottom: 15px;
+}
+
+.side-by-side-column {
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    overflow: hidden;
+}
+
+.side-by-side-column-header {
+    background: #f0f0f0;
+    padding: 10px;
+    font-weight: 600;
+    color: #555;
+    border-bottom: 2px solid #ddd;
+    text-align: center;
+}
+
+.side-by-side-content {
+    padding: 15px;
+    font-family: 'Courier New', monospace;
+    font-size: 16px;
+    line-height: 1.8;
+    word-break: break-all;
+    min-height: 200px;
+}
+
+/* Diff highlighting for side-by-side */
+.diff-removed {
+    background-color: #ffcccc;
+    padding: 2px 0;
+}
+
+.diff-added {
+    background-color: #ccffcc;
+    padding: 2px 0;
+}
+
+.diff-match {
+    background-color: #cce5ff;
+    font-weight: bold;
+    padding: 2px 0;
 }
 
 @media (max-width: 768px) {
@@ -396,5 +671,17 @@ button:active {
 
     h1 {
         font-size: 1.5em;
+    }
+
+    .side-by-side-container {
+        grid-template-columns: 1fr;
+    }
+
+    .accessibility-controls {
+        flex-direction: column;
+    }
+
+    .keyboard-hint {
+        display: none;
     }
 }
