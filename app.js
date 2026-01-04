@@ -213,6 +213,8 @@ function computeLCS() {
 
     // Hide any previous errors
     hideError();
+    // Hide stale indicator
+    hideStaleIndicator();
 
     // Validation
     if (!string1 || !string2) {
@@ -240,6 +242,10 @@ function computeLCS() {
             document.getElementById('lcsLength').textContent = `Length: ${lcsString.length}`;
             document.getElementById('alignedString1').innerHTML = formatAlignment(result.first, result.codes);
             document.getElementById('alignedString2').innerHTML = formatAlignment(result.second, result.codes);
+
+            // Save the computed values
+            lastComputedString1 = string1;
+            lastComputedString2 = string2;
 
             // Show result section
             document.getElementById('resultSection').classList.add('show');
@@ -294,15 +300,52 @@ function loadPreset(presetName) {
     }
 }
 
+// Track last computed values
+let lastComputedString1 = '';
+let lastComputedString2 = '';
+
+// Check if results are stale
+function checkStaleResults() {
+    const resultSection = document.getElementById('resultSection');
+    const staleIndicator = document.getElementById('staleIndicator');
+
+    // Only check if results are currently shown
+    if (!resultSection.classList.contains('show')) {
+        return;
+    }
+
+    const currentString1 = document.getElementById('string1').value;
+    const currentString2 = document.getElementById('string2').value;
+
+    // Show stale indicator if inputs have changed from last computation
+    if (currentString1 !== lastComputedString1 || currentString2 !== lastComputedString2) {
+        staleIndicator.classList.add('show');
+    } else {
+        staleIndicator.classList.remove('show');
+    }
+}
+
+// Hide stale indicator
+function hideStaleIndicator() {
+    const staleIndicator = document.getElementById('staleIndicator');
+    staleIndicator.classList.remove('show');
+}
+
 // Initialize event listeners when DOM is loaded
 document.addEventListener('DOMContentLoaded', function() {
     // Add event listeners for textareas
     const string1 = document.getElementById('string1');
     const string2 = document.getElementById('string2');
 
-    // Character count updates
-    string1.addEventListener('input', () => updateCharCount('string1', 'charCount1', 'warning1'));
-    string2.addEventListener('input', () => updateCharCount('string2', 'charCount2', 'warning2'));
+    // Character count updates and stale check
+    string1.addEventListener('input', () => {
+        updateCharCount('string1', 'charCount1', 'warning1');
+        checkStaleResults();
+    });
+    string2.addEventListener('input', () => {
+        updateCharCount('string2', 'charCount2', 'warning2');
+        checkStaleResults();
+    });
 
     // Initialize character counts
     updateCharCount('string1', 'charCount1', 'warning1');
@@ -327,9 +370,5 @@ document.addEventListener('DOMContentLoaded', function() {
     // Preset dropdown event listener
     document.getElementById('presets').addEventListener('change', function(e) {
         loadPreset(e.target.value);
-        // Reset dropdown to default after loading
-        setTimeout(() => {
-            e.target.value = '';
-        }, 100);
     });
 });

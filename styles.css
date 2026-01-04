@@ -219,6 +219,22 @@ button:active {
     padding: 20px;
 }
 
+.stale-indicator {
+    background: #fff3cd;
+    border: 2px solid #ffc107;
+    color: #856404;
+    padding: 12px 20px;
+    border-radius: 8px;
+    margin-bottom: 15px;
+    display: none;
+    font-weight: 600;
+    animation: slideDown 0.3s ease-out;
+}
+
+.stale-indicator.show {
+    display: block;
+}
+
 .result-title {
     font-weight: 600;
     color: #333;
