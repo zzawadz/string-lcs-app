@@ -1,5 +1,25 @@
 // JavaScript implementation of the LCS algorithm from the C++ code
 
+// Example presets
+const PRESETS = {
+    dna: {
+        string1: 'AGGTAB',
+        string2: 'GXTXAYB'
+    },
+    code: {
+        string1: 'function calculateSum(a, b) { return a + b; }',
+        string2: 'function computeSum(x, y) { return x + y; }'
+    },
+    natural: {
+        string1: 'The quick brown fox jumps over the lazy dog',
+        string2: 'The lazy dog was jumped over by a quick brown fox'
+    },
+    short: {
+        string1: 'ABCDEF',
+        string2: 'ACDEBF'
+    }
+};
+
 function longestCommonBacktrack(x, y) {
     const m = x.length;
     const n = y.length;
@@ -127,37 +147,228 @@ function formatAlignment(str, codes) {
     return formatted;
 }
 
+// Helper function to show error messages
+function showError(message) {
+    const errorDiv = document.getElementById('errorMessage');
+    errorDiv.textContent = message;
+    errorDiv.classList.add('show');
+    setTimeout(() => {
+        errorDiv.classList.remove('show');
+    }, 5000);
+}
+
+// Helper function to hide error messages
+function hideError() {
+    const errorDiv = document.getElementById('errorMessage');
+    errorDiv.classList.remove('show');
+}
+
+// Helper function to update character count
+function updateCharCount(textareaId, countId, warningId) {
+    const textarea = document.getElementById(textareaId);
+    const countSpan = document.getElementById(countId);
+    const warningSpan = document.getElementById(warningId);
+    const length = textarea.value.length;
+
+    countSpan.textContent = `${length} character${length !== 1 ? 's' : ''}`;
+
+    if (length > 10000) {
+        warningSpan.textContent = '⚠️ Very large input - computation may take time';
+    } else if (length > 5000) {
+        warningSpan.textContent = '⚠️ Large input';
+    } else {
+        warningSpan.textContent = '';
+    }
+}
+
+// Helper function to estimate computation time
+function estimateTime(len1, len2) {
+    const operations = len1 * len2;
+    if (operations > 100000000) {
+        return 'This may take several seconds...';
+    } else if (operations > 10000000) {
+        return 'This may take a moment...';
+    }
+    return '';
+}
+
+// Helper function to show loading indicator
+function showLoading(message = 'Computing LCS...') {
+    const loadingDiv = document.getElementById('loadingIndicator');
+    const loadingText = loadingDiv.querySelector('.loading-text');
+    loadingText.textContent = message;
+    loadingDiv.classList.add('show');
+}
+
+// Helper function to hide loading indicator
+function hideLoading() {
+    const loadingDiv = document.getElementById('loadingIndicator');
+    loadingDiv.classList.remove('show');
+}
+
+// Main compute function
 function computeLCS() {
     const string1 = document.getElementById('string1').value;
     const string2 = document.getElementById('string2').value;
 
+    // Hide any previous errors
+    hideError();
+    // Hide stale indicator
+    hideStaleIndicator();
+
+    // Validation
     if (!string1 || !string2) {
-        alert('Please enter both strings!');
+        showError('⚠️ Please enter both strings before computing the LCS.');
         return;
     }
 
-    // Compute LCS
-    const result = longestCommonSubseq(string1, string2);
-    const lcsString = getLCSString(result.first, result.second);
+    // Show estimated time if needed
+    const timeEstimate = estimateTime(string1.length, string2.length);
+    if (timeEstimate) {
+        showLoading(timeEstimate);
+    } else {
+        showLoading();
+    }
 
-    // Display results
-    document.getElementById('lcsResult').textContent = lcsString || '(empty)';
-    document.getElementById('lcsLength').textContent = `Length: ${lcsString.length}`;
-    document.getElementById('alignedString1').innerHTML = formatAlignment(result.first, result.codes);
-    document.getElementById('alignedString2').innerHTML = formatAlignment(result.second, result.codes);
+    // Use setTimeout to allow the loading indicator to render
+    setTimeout(() => {
+        try {
+            // Compute LCS
+            const result = longestCommonSubseq(string1, string2);
+            const lcsString = getLCSString(result.first, result.second);
 
-    // Show result section
-    document.getElementById('resultSection').classList.add('show');
+            // Display results
+            document.getElementById('lcsResult').textContent = lcsString || '(empty)';
+            document.getElementById('lcsLength').textContent = `Length: ${lcsString.length}`;
+            document.getElementById('alignedString1').innerHTML = formatAlignment(result.first, result.codes);
+            document.getElementById('alignedString2').innerHTML = formatAlignment(result.second, result.codes);
+
+            // Save the computed values
+            lastComputedString1 = string1;
+            lastComputedString2 = string2;
+
+            // Show result section
+            document.getElementById('resultSection').classList.add('show');
+        } catch (error) {
+            showError('❌ An error occurred while computing the LCS. Please try with smaller inputs.');
+            console.error('LCS computation error:', error);
+        } finally {
+            hideLoading();
+        }
+    }, 50);
 }
 
-// Allow Enter key in textareas without triggering form submission
+// Copy to clipboard functionality
+function copyToClipboard(text, buttonId) {
+    navigator.clipboard.writeText(text).then(() => {
+        const button = document.getElementById(buttonId);
+        const originalText = button.textContent;
+        button.textContent = '✓ Copied!';
+        button.classList.add('copied');
+
+        setTimeout(() => {
+            button.textContent = originalText;
+            button.classList.remove('copied');
+        }, 2000);
+    }).catch(err => {
+        showError('❌ Failed to copy to clipboard. Please try again.');
+        console.error('Copy failed:', err);
+    });
+}
+
+// Copy LCS result
+function copyLCS() {
+    const lcsText = document.getElementById('lcsResult').textContent;
+    copyToClipboard(lcsText, 'copyLCS');
+}
+
+// Copy alignment
+function copyAlignment() {
+    const aligned1 = document.getElementById('alignedString1').textContent;
+    const aligned2 = document.getElementById('alignedString2').textContent;
+    const alignmentText = `String 1 (aligned):\n${aligned1}\n\nString 2 (aligned):\n${aligned2}`;
+    copyToClipboard(alignmentText, 'copyAlignment');
+}
+
+// Load preset example
+function loadPreset(presetName) {
+    if (presetName && PRESETS[presetName]) {
+        document.getElementById('string1').value = PRESETS[presetName].string1;
+        document.getElementById('string2').value = PRESETS[presetName].string2;
+        updateCharCount('string1', 'charCount1', 'warning1');
+        updateCharCount('string2', 'charCount2', 'warning2');
+    }
+}
+
+// Track last computed values
+let lastComputedString1 = '';
+let lastComputedString2 = '';
+
+// Check if results are stale
+function checkStaleResults() {
+    const resultSection = document.getElementById('resultSection');
+    const staleIndicator = document.getElementById('staleIndicator');
+
+    // Only check if results are currently shown
+    if (!resultSection.classList.contains('show')) {
+        return;
+    }
+
+    const currentString1 = document.getElementById('string1').value;
+    const currentString2 = document.getElementById('string2').value;
+
+    // Show stale indicator if inputs have changed from last computation
+    if (currentString1 !== lastComputedString1 || currentString2 !== lastComputedString2) {
+        staleIndicator.classList.add('show');
+    } else {
+        staleIndicator.classList.remove('show');
+    }
+}
+
+// Hide stale indicator
+function hideStaleIndicator() {
+    const staleIndicator = document.getElementById('staleIndicator');
+    staleIndicator.classList.remove('show');
+}
+
+// Initialize event listeners when DOM is loaded
 document.addEventListener('DOMContentLoaded', function() {
-    const textareas = document.querySelectorAll('textarea');
-    textareas.forEach(textarea => {
+    // Add event listeners for textareas
+    const string1 = document.getElementById('string1');
+    const string2 = document.getElementById('string2');
+
+    // Character count updates and stale check
+    string1.addEventListener('input', () => {
+        updateCharCount('string1', 'charCount1', 'warning1');
+        checkStaleResults();
+    });
+    string2.addEventListener('input', () => {
+        updateCharCount('string2', 'charCount2', 'warning2');
+        checkStaleResults();
+    });
+
+    // Initialize character counts
+    updateCharCount('string1', 'charCount1', 'warning1');
+    updateCharCount('string2', 'charCount2', 'warning2');
+
+    // Ctrl+Enter to compute
+    [string1, string2].forEach(textarea => {
         textarea.addEventListener('keydown', function(e) {
             if (e.key === 'Enter' && e.ctrlKey) {
                 computeLCS();
             }
         });
+    });
+
+    // Compute button event listener
+    document.getElementById('computeButton').addEventListener('click', computeLCS);
+
+    // Copy button event listeners
+    document.getElementById('copyLCS').addEventListener('click', copyLCS);
+    document.getElementById('copyAlignment').addEventListener('click', copyAlignment);
+
+    // Preset dropdown event listener
+    document.getElementById('presets').addEventListener('change', function(e) {
+        loadPreset(e.target.value);
     });
 });
