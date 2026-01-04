@@ -11,32 +11,67 @@
         <h1>Longest Common Subsequence Finder</h1>
         <p class="subtitle">Find the longest common subsequence between two strings</p>
 
+        <!-- Example Presets Dropdown -->
+        <div class="preset-section">
+            <label for="presets">Try an example:</label>
+            <select id="presets">
+                <option value="">-- Select an example --</option>
+                <option value="dna">DNA Sequences</option>
+                <option value="code">Code Snippets</option>
+                <option value="natural">Natural Language</option>
+                <option value="short">Short Strings</option>
+            </select>
+        </div>
+
+        <!-- Error Message Container -->
+        <div id="errorMessage" class="error-message"></div>
+
         <div class="input-section">
             <div class="input-group">
                 <label for="string1">String 1:</label>
                 <textarea id="string1" placeholder="Enter first string...">Lorem ipsum dolor sit amet consectetur adipiscing elit</textarea>
+                <div class="char-counter">
+                    <span id="charCount1">0 characters</span>
+                    <span id="warning1" class="size-warning"></span>
+                </div>
             </div>
             <div class="input-group">
                 <label for="string2">String 2:</label>
                 <textarea id="string2" placeholder="Enter second string...">Lorem dolor sit amet sed do eiusmod tempor elit</textarea>
+                <div class="char-counter">
+                    <span id="charCount2">0 characters</span>
+                    <span id="warning2" class="size-warning"></span>
+                </div>
             </div>
         </div>
 
         <div class="button-container">
-            <button onclick="computeLCS()">Find LCS</button>
+            <button id="computeButton">Find LCS</button>
+        </div>
+
+        <!-- Loading Indicator -->
+        <div id="loadingIndicator" class="loading-indicator">
+            <div class="spinner"></div>
+            <div class="loading-text">Computing LCS...</div>
         </div>
 
         <div id="resultSection" class="result-section">
             <div class="result-title">Results:</div>
 
             <div class="lcs-display">
-                <div class="lcs-header">Longest Common Subsequence:</div>
+                <div class="lcs-header">
+                    Longest Common Subsequence:
+                    <button class="copy-button" id="copyLCS" title="Copy LCS to clipboard">📋 Copy</button>
+                </div>
                 <div class="lcs-string" id="lcsResult"></div>
                 <div class="lcs-length" id="lcsLength"></div>
             </div>
 
             <div class="alignment-display">
-                <div class="alignment-header">Alignment:</div>
+                <div class="alignment-header">
+                    Alignment:
+                    <button class="copy-button" id="copyAlignment" title="Copy alignment to clipboard">📋 Copy</button>
+                </div>
                 <div class="alignment-label">String 1 (aligned):</div>
                 <div class="alignment-row" id="alignedString1"></div>
                 <div class="alignment-label-spaced">String 2 (aligned):</div>
