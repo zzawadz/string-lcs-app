@@ -482,9 +482,18 @@ body.high-contrast .lcs-header,
 body.high-contrast .alignment-header,
 body.high-contrast .alignment-label,
 body.high-contrast .alignment-label-spaced,
-body.high-contrast .legend-title,
-body.high-contrast .side-by-side-column-header {
+body.high-contrast .legend-title {
     color: #fff;
+}
+
+body.high-contrast .side-by-side-column-header {
+    background: #000;
+    color: #fff;
+    border-bottom-color: #fff;
+}
+
+body.high-contrast .side-by-side-column {
+    border-color: #fff;
 }
 
 body.high-contrast textarea,
