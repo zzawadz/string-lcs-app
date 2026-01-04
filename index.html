@@ -225,6 +225,16 @@
                 <div class="alignment-row" id="alignedString1"></div>
                 <div class="alignment-label" style="margin-top: 15px;">String 2 (aligned):</div>
                 <div class="alignment-row" id="alignedString2"></div>
+
+                <div style="margin-top: 20px; padding-top: 15px; border-top: 1px solid #ddd;">
+                    <div style="font-weight: 600; color: #555; margin-bottom: 10px;">Legend:</div>
+                    <div style="font-size: 0.9em; color: #666; line-height: 1.8;">
+                        <div><span style="background-color: #e0e0d1; padding: 2px 6px; display: inline-block; margin-right: 5px;">text</span> Mismatch (different characters at same position)</div>
+                        <div><span style="background-color: #ffff99; padding: 2px 6px; display: inline-block; margin-right: 5px;">text</span> Character only in String 1 (gap in String 2)</div>
+                        <div><span style="background-color: #99bbff; padding: 2px 6px; display: inline-block; margin-right: 5px;">text</span> Character only in String 2 (gap in String 1)</div>
+                        <div>No highlighting - Matching characters</div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -268,13 +278,14 @@
 
         function outputLCS(backtrack, x, y, i, j) {
             if (i === 0 && j === 0) {
-                return { first: '', second: '' };
+                return { first: '', second: '', codes: [] };
             }
 
             if (i > 0 && j === 0) {
                 const result = outputLCS(backtrack, x, y, i - 1, j);
                 result.first += x[i - 1];
                 result.second += '-';
+                result.codes.push(1);
                 return result;
             }
 
@@ -282,6 +293,7 @@
                 const result = outputLCS(backtrack, x, y, i, j - 1);
                 result.first += '-';
                 result.second += y[j - 1];
+                result.codes.push(2);
                 return result;
             }
 
@@ -289,28 +301,32 @@
                 const result = outputLCS(backtrack, x, y, i - 1, j);
                 result.first += x[i - 1];
                 result.second += '-';
+                result.codes.push(1);
                 return result;
             }
             if (backtrack[i][j] === 2) {
                 const result = outputLCS(backtrack, x, y, i, j - 1);
                 result.first += '-';
                 result.second += y[j - 1];
+                result.codes.push(2);
                 return result;
             }
             if (backtrack[i][j] === 3) {
                 const result = outputLCS(backtrack, x, y, i - 1, j - 1);
                 result.first += x[i - 1];
                 result.second += x[i - 1];
+                result.codes.push(3);
                 return result;
             }
             if (backtrack[i][j] === 4) {
                 const result = outputLCS(backtrack, x, y, i - 1, j - 1);
                 result.first += x[i - 1];
                 result.second += y[j - 1];
+                result.codes.push(0);
                 return result;
             }
 
-            return { first: '', second: '' };
+            return { first: '', second: '', codes: [] };
         }
 
         function longestCommonSubseq(x, y) {
@@ -329,14 +345,25 @@
             return lcs;
         }
 
-        function formatAlignment(str) {
+        function formatAlignment(str, codes) {
+            // Color mapping from the reference app
+            const colors = {
+                0: '#e0e0d1',  // light beige - mismatch
+                1: '#ffff99',  // light yellow - gap in string2
+                2: '#99bbff',  // light blue - gap in string1
+                3: ''          // no color - match
+            };
+
             let formatted = '';
             for (let i = 0; i < str.length; i++) {
                 const char = str[i];
-                if (char === '-') {
-                    formatted += `<span class="gap">${char}</span>`;
+                const code = codes[i];
+                const bgColor = colors[code];
+
+                if (bgColor) {
+                    formatted += `<span style="background-color: ${bgColor}; display: inline; overflow: hidden; padding: 0px; margin: 0px;">${char}</span>`;
                 } else {
-                    formatted += `<span class="match">${char}</span>`;
+                    formatted += char;
                 }
             }
             return formatted;
@@ -358,8 +385,8 @@
             // Display results
             document.getElementById('lcsResult').textContent = lcsString || '(empty)';
             document.getElementById('lcsLength').textContent = `Length: ${lcsString.length}`;
-            document.getElementById('alignedString1').innerHTML = formatAlignment(result.first);
-            document.getElementById('alignedString2').innerHTML = formatAlignment(result.second);
+            document.getElementById('alignedString1').innerHTML = formatAlignment(result.first, result.codes);
+            document.getElementById('alignedString2').innerHTML = formatAlignment(result.second, result.codes);
 
             // Show result section
             document.getElementById('resultSection').classList.add('show');
