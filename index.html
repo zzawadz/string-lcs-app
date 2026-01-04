@@ -225,6 +225,16 @@
                 <div class="alignment-row" id="alignedString1"></div>
                 <div class="alignment-label" style="margin-top: 15px;">String 2 (aligned):</div>
                 <div class="alignment-row" id="alignedString2"></div>
+
+                <div style="margin-top: 20px; padding-top: 15px; border-top: 1px solid #ddd;">
+                    <div style="font-weight: 600; color: #555; margin-bottom: 10px;">Legend:</div>
+                    <div style="font-size: 0.9em; color: #666; line-height: 1.8;">
+                        <div><span style="background-color: #e0e0d1; padding: 2px 6px; display: inline-block; margin-right: 5px;">text</span> Mismatch (different characters at same position)</div>
+                        <div><span style="background-color: #ffff99; padding: 2px 6px; display: inline-block; margin-right: 5px;">text</span> Character only in String 1 (gap in String 2)</div>
+                        <div><span style="background-color: #99bbff; padding: 2px 6px; display: inline-block; margin-right: 5px;">text</span> Character only in String 2 (gap in String 1)</div>
+                        <div>No highlighting - Matching characters</div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -341,15 +351,20 @@
                 0: '#e0e0d1',  // light beige - mismatch
                 1: '#ffff99',  // light yellow - gap in string2
                 2: '#99bbff',  // light blue - gap in string1
-                3: '#ff9999'   // light red - match
+                3: ''          // no color - match
             };
 
             let formatted = '';
             for (let i = 0; i < str.length; i++) {
                 const char = str[i];
                 const code = codes[i];
-                const bgColor = colors[code] || '#ffffff';
-                formatted += `<span style="background-color: ${bgColor}; display: inline; overflow: hidden; padding: 0px; margin: 0px;">${char}</span>`;
+                const bgColor = colors[code];
+
+                if (bgColor) {
+                    formatted += `<span style="background-color: ${bgColor}; display: inline; overflow: hidden; padding: 0px; margin: 0px;">${char}</span>`;
+                } else {
+                    formatted += char;
+                }
             }
             return formatted;
         }
