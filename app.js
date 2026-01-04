@@ -20,6 +20,22 @@ const PRESETS = {
     }
 };
 
+// Input sanitization - escape HTML to prevent XSS
+function escapeHtml(unsafe) {
+    if (typeof unsafe !== 'string') {
+        return '';
+    }
+    return unsafe
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+}
+
+// View mode state (alignment or side-by-side)
+let currentViewMode = 'alignment'; // 'alignment' or 'side-by-side'
+
 function longestCommonBacktrack(x, y) {
     const m = x.length;
     const n = y.length;
@@ -138,13 +154,58 @@ function formatAlignment(str, codes) {
         const code = codes[i];
         const bgColor = colors[code];
 
+        // Escape HTML to prevent XSS
+        const escapedChar = escapeHtml(char);
+
         if (bgColor) {
-            formatted += `<span style="background-color: ${bgColor}; display: inline; overflow: hidden; padding: 0px; margin: 0px;">${char}</span>`;
+            formatted += `<span style="background-color: ${bgColor}; display: inline; overflow: hidden; padding: 0px; margin: 0px;">${escapedChar}</span>`;
         } else {
-            formatted += char;
+            formatted += escapedChar;
         }
     }
     return formatted;
+}
+
+// Format side-by-side comparison view
+function formatSideBySide(aligned1, aligned2, codes) {
+    let formatted1 = '';
+    let formatted2 = '';
+
+    for (let i = 0; i < aligned1.length; i++) {
+        const char1 = aligned1[i];
+        const char2 = aligned2[i];
+        const code = codes[i];
+
+        // Escape HTML to prevent XSS
+        const escapedChar1 = escapeHtml(char1);
+        const escapedChar2 = escapeHtml(char2);
+
+        // Code meanings:
+        // 0: mismatch (different chars at same position)
+        // 1: gap in string2 (char only in string1)
+        // 2: gap in string1 (char only in string2)
+        // 3: match (same char in both)
+
+        if (code === 3) {
+            // Match - highlight in both as common subsequence
+            formatted1 += `<span class="diff-match">${escapedChar1}</span>`;
+            formatted2 += `<span class="diff-match">${escapedChar2}</span>`;
+        } else if (code === 1) {
+            // Gap in string2 - char only in string1 (removed)
+            formatted1 += `<span class="diff-removed">${escapedChar1}</span>`;
+            formatted2 += `<span class="diff-removed">${escapedChar2}</span>`;
+        } else if (code === 2) {
+            // Gap in string1 - char only in string2 (added)
+            formatted1 += `<span class="diff-added">${escapedChar1}</span>`;
+            formatted2 += `<span class="diff-added">${escapedChar2}</span>`;
+        } else {
+            // Mismatch - no highlighting
+            formatted1 += escapedChar1;
+            formatted2 += escapedChar2;
+        }
+    }
+
+    return { formatted1, formatted2 };
 }
 
 // Helper function to show error messages
@@ -237,11 +298,18 @@ function computeLCS() {
             const result = longestCommonSubseq(string1, string2);
             const lcsString = getLCSString(result.first, result.second);
 
-            // Display results
+            // Display results - use textContent for plain text (XSS safe)
             document.getElementById('lcsResult').textContent = lcsString || '(empty)';
             document.getElementById('lcsLength').textContent = `Length: ${lcsString.length}`;
+
+            // Display alignment view (with HTML escaping in formatAlignment)
             document.getElementById('alignedString1').innerHTML = formatAlignment(result.first, result.codes);
             document.getElementById('alignedString2').innerHTML = formatAlignment(result.second, result.codes);
+
+            // Display side-by-side view (with HTML escaping in formatSideBySide)
+            const sideBySide = formatSideBySide(result.first, result.second, result.codes);
+            document.getElementById('sideBySideString1').innerHTML = sideBySide.formatted1;
+            document.getElementById('sideBySideString2').innerHTML = sideBySide.formatted2;
 
             // Save the computed values
             lastComputedString1 = string1;
@@ -288,6 +356,75 @@ function copyAlignment() {
     const aligned2 = document.getElementById('alignedString2').textContent;
     const alignmentText = `String 1 (aligned):\n${aligned1}\n\nString 2 (aligned):\n${aligned2}`;
     copyToClipboard(alignmentText, 'copyAlignment');
+}
+
+// Copy side-by-side comparison
+function copySideBySide() {
+    const sideBySide1 = document.getElementById('sideBySideString1').textContent;
+    const sideBySide2 = document.getElementById('sideBySideString2').textContent;
+    const comparisonText = `String 1:\n${sideBySide1}\n\nString 2:\n${sideBySide2}`;
+    copyToClipboard(comparisonText, 'copySideBySide');
+}
+
+// Toggle high contrast mode
+function toggleHighContrast() {
+    document.body.classList.toggle('high-contrast');
+
+    // Save preference to localStorage
+    const isHighContrast = document.body.classList.contains('high-contrast');
+    localStorage.setItem('highContrastMode', isHighContrast);
+
+    // Announce to screen readers
+    const message = isHighContrast ? 'High contrast mode enabled' : 'High contrast mode disabled';
+    announceToScreenReader(message);
+}
+
+// Toggle view mode between alignment and side-by-side
+function toggleViewMode() {
+    const alignmentDisplay = document.getElementById('alignmentDisplay');
+    const sideBySideDisplay = document.getElementById('sideBySideDisplay');
+    const viewModeLabel = document.getElementById('viewModeLabel');
+
+    if (currentViewMode === 'alignment') {
+        // Switch to side-by-side
+        alignmentDisplay.style.display = 'none';
+        sideBySideDisplay.style.display = 'block';
+        currentViewMode = 'side-by-side';
+        viewModeLabel.textContent = 'Alignment';
+        announceToScreenReader('Switched to side-by-side comparison view');
+    } else {
+        // Switch to alignment
+        alignmentDisplay.style.display = 'block';
+        sideBySideDisplay.style.display = 'none';
+        currentViewMode = 'alignment';
+        viewModeLabel.textContent = 'Side-by-Side';
+        announceToScreenReader('Switched to alignment view');
+    }
+}
+
+// Announce message to screen readers
+function announceToScreenReader(message) {
+    // Create or update a visually hidden live region
+    let liveRegion = document.getElementById('sr-announcer');
+    if (!liveRegion) {
+        liveRegion = document.createElement('div');
+        liveRegion.id = 'sr-announcer';
+        liveRegion.setAttribute('role', 'status');
+        liveRegion.setAttribute('aria-live', 'polite');
+        liveRegion.setAttribute('aria-atomic', 'true');
+        liveRegion.style.position = 'absolute';
+        liveRegion.style.left = '-10000px';
+        liveRegion.style.width = '1px';
+        liveRegion.style.height = '1px';
+        liveRegion.style.overflow = 'hidden';
+        document.body.appendChild(liveRegion);
+    }
+
+    // Clear and set new message
+    liveRegion.textContent = '';
+    setTimeout(() => {
+        liveRegion.textContent = message;
+    }, 100);
 }
 
 // Load preset example
@@ -355,6 +492,7 @@ document.addEventListener('DOMContentLoaded', function() {
     [string1, string2].forEach(textarea => {
         textarea.addEventListener('keydown', function(e) {
             if (e.key === 'Enter' && e.ctrlKey) {
+                e.preventDefault();
                 computeLCS();
             }
         });
@@ -366,9 +504,34 @@ document.addEventListener('DOMContentLoaded', function() {
     // Copy button event listeners
     document.getElementById('copyLCS').addEventListener('click', copyLCS);
     document.getElementById('copyAlignment').addEventListener('click', copyAlignment);
+    document.getElementById('copySideBySide').addEventListener('click', copySideBySide);
+
+    // Accessibility button event listeners
+    document.getElementById('toggleHighContrast').addEventListener('click', toggleHighContrast);
+    document.getElementById('toggleViewMode').addEventListener('click', toggleViewMode);
 
     // Preset dropdown event listener
     document.getElementById('presets').addEventListener('change', function(e) {
         loadPreset(e.target.value);
+    });
+
+    // Restore high contrast preference from localStorage
+    const savedHighContrast = localStorage.getItem('highContrastMode') === 'true';
+    if (savedHighContrast) {
+        document.body.classList.add('high-contrast');
+    }
+
+    // Keyboard shortcuts - ESC to close loading, H for high contrast, V for view mode
+    document.addEventListener('keydown', function(e) {
+        // H key for high contrast toggle (Alt+H to avoid conflicts)
+        if (e.altKey && e.key === 'h') {
+            e.preventDefault();
+            toggleHighContrast();
+        }
+        // V key for view mode toggle (Alt+V)
+        if (e.altKey && e.key === 'v') {
+            e.preventDefault();
+            toggleViewMode();
+        }
     });
 });

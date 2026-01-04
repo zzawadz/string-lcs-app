@@ -8,13 +8,25 @@
 </head>
 <body>
     <div class="container">
-        <h1>Longest Common Subsequence Finder</h1>
-        <p class="subtitle">Find the longest common subsequence between two strings</p>
+        <header>
+            <h1>Longest Common Subsequence Finder</h1>
+            <p class="subtitle">Find the longest common subsequence between two strings</p>
+        </header>
+
+        <!-- Accessibility Controls -->
+        <div class="accessibility-controls">
+            <button id="toggleHighContrast" class="accessibility-button" aria-label="Toggle high contrast mode" title="Toggle high contrast mode">
+                <span aria-hidden="true">◐</span> High Contrast
+            </button>
+            <button id="toggleViewMode" class="accessibility-button" aria-label="Toggle between alignment and side-by-side view" title="Switch visualization mode">
+                <span aria-hidden="true">⇄</span> <span id="viewModeLabel">Side-by-Side</span>
+            </button>
+        </div>
 
         <!-- Example Presets Dropdown -->
         <div class="preset-section">
             <label for="presets">Try an example:</label>
-            <select id="presets">
+            <select id="presets" aria-label="Select a preset example to populate the input fields">
                 <option value="">-- Select an example --</option>
                 <option value="dna">DNA Sequences</option>
                 <option value="code">Code Snippets</option>
@@ -24,39 +36,50 @@
         </div>
 
         <!-- Error Message Container -->
-        <div id="errorMessage" class="error-message"></div>
+        <div id="errorMessage" class="error-message" role="alert" aria-live="assertive" aria-atomic="true"></div>
 
         <div class="input-section">
             <div class="input-group">
                 <label for="string1">String 1:</label>
-                <textarea id="string1" placeholder="Enter first string...">Lorem ipsum dolor sit amet consectetur adipiscing elit</textarea>
-                <div class="char-counter">
+                <textarea
+                    id="string1"
+                    placeholder="Enter first string..."
+                    aria-label="First string input for LCS comparison"
+                    aria-describedby="charCount1 warning1">Lorem ipsum dolor sit amet consectetur adipiscing elit</textarea>
+                <div class="char-counter" aria-live="polite">
                     <span id="charCount1">0 characters</span>
-                    <span id="warning1" class="size-warning"></span>
+                    <span id="warning1" class="size-warning" role="status"></span>
                 </div>
             </div>
             <div class="input-group">
                 <label for="string2">String 2:</label>
-                <textarea id="string2" placeholder="Enter second string...">Lorem dolor sit amet sed do eiusmod tempor elit</textarea>
-                <div class="char-counter">
+                <textarea
+                    id="string2"
+                    placeholder="Enter second string..."
+                    aria-label="Second string input for LCS comparison"
+                    aria-describedby="charCount2 warning2">Lorem dolor sit amet sed do eiusmod tempor elit</textarea>
+                <div class="char-counter" aria-live="polite">
                     <span id="charCount2">0 characters</span>
-                    <span id="warning2" class="size-warning"></span>
+                    <span id="warning2" class="size-warning" role="status"></span>
                 </div>
             </div>
         </div>
 
         <div class="button-container">
-            <button id="computeButton">Find LCS</button>
+            <button id="computeButton" aria-label="Compute the longest common subsequence">
+                Find LCS
+                <span class="keyboard-hint" aria-hidden="true">(Ctrl+Enter)</span>
+            </button>
         </div>
 
         <!-- Loading Indicator -->
-        <div id="loadingIndicator" class="loading-indicator">
-            <div class="spinner"></div>
+        <div id="loadingIndicator" class="loading-indicator" role="status" aria-live="polite" aria-label="Computing results">
+            <div class="spinner" aria-hidden="true"></div>
             <div class="loading-text">Computing LCS...</div>
         </div>
 
-        <div id="resultSection" class="result-section">
-            <div id="staleIndicator" class="stale-indicator">
+        <div id="resultSection" class="result-section" role="region" aria-label="LCS computation results">
+            <div id="staleIndicator" class="stale-indicator" role="alert" aria-live="polite">
                 ⚠️ Input has changed - results may be outdated. Click "Find LCS" to refresh.
             </div>
 
@@ -65,29 +88,62 @@
             <div class="lcs-display">
                 <div class="lcs-header">
                     Longest Common Subsequence:
-                    <button class="copy-button" id="copyLCS" title="Copy LCS to clipboard">📋 Copy</button>
+                    <button class="copy-button" id="copyLCS" aria-label="Copy longest common subsequence to clipboard">
+                        <span aria-hidden="true">📋</span> Copy
+                    </button>
                 </div>
-                <div class="lcs-string" id="lcsResult"></div>
-                <div class="lcs-length" id="lcsLength"></div>
+                <div class="lcs-string" id="lcsResult" role="text" aria-label="Longest common subsequence result"></div>
+                <div class="lcs-length" id="lcsLength" aria-live="polite"></div>
             </div>
 
-            <div class="alignment-display">
+            <div id="alignmentDisplay" class="alignment-display">
                 <div class="alignment-header">
-                    Alignment:
-                    <button class="copy-button" id="copyAlignment" title="Copy alignment to clipboard">📋 Copy</button>
+                    <span id="alignmentTitle">Alignment:</span>
+                    <button class="copy-button" id="copyAlignment" aria-label="Copy alignment to clipboard">
+                        <span aria-hidden="true">📋</span> Copy
+                    </button>
                 </div>
                 <div class="alignment-label">String 1 (aligned):</div>
-                <div class="alignment-row" id="alignedString1"></div>
+                <div class="alignment-row" id="alignedString1" role="text" aria-label="String 1 aligned with gaps"></div>
                 <div class="alignment-label-spaced">String 2 (aligned):</div>
-                <div class="alignment-row" id="alignedString2"></div>
+                <div class="alignment-row" id="alignedString2" role="text" aria-label="String 2 aligned with gaps"></div>
 
                 <div class="legend-container">
                     <div class="legend-title">Legend:</div>
                     <div class="legend-content">
-                        <div class="legend-item"><span class="legend-sample legend-mismatch">text</span> Mismatch (different characters at same position)</div>
-                        <div class="legend-item"><span class="legend-sample legend-gap-string2">text</span> Character only in String 1 (gap in String 2)</div>
-                        <div class="legend-item"><span class="legend-sample legend-gap-string1">text</span> Character only in String 2 (gap in String 1)</div>
+                        <div class="legend-item"><span class="legend-sample legend-mismatch" aria-hidden="true">text</span> Mismatch (different characters at same position)</div>
+                        <div class="legend-item"><span class="legend-sample legend-gap-string2" aria-hidden="true">text</span> Character only in String 1 (gap in String 2)</div>
+                        <div class="legend-item"><span class="legend-sample legend-gap-string1" aria-hidden="true">text</span> Character only in String 2 (gap in String 1)</div>
                         <div class="legend-item">No highlighting - Matching characters</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Side-by-Side View -->
+            <div id="sideBySideDisplay" class="side-by-side-display" style="display: none;">
+                <div class="side-by-side-header">
+                    <span id="sideBySideTitle">Side-by-Side Comparison:</span>
+                    <button class="copy-button" id="copySideBySide" aria-label="Copy side-by-side comparison to clipboard">
+                        <span aria-hidden="true">📋</span> Copy
+                    </button>
+                </div>
+                <div class="side-by-side-container">
+                    <div class="side-by-side-column">
+                        <div class="side-by-side-column-header">String 1</div>
+                        <div id="sideBySideString1" class="side-by-side-content" role="text"></div>
+                    </div>
+                    <div class="side-by-side-column">
+                        <div class="side-by-side-column-header">String 2</div>
+                        <div id="sideBySideString2" class="side-by-side-content" role="text"></div>
+                    </div>
+                </div>
+                <div class="legend-container">
+                    <div class="legend-title">Legend:</div>
+                    <div class="legend-content">
+                        <div class="legend-item"><span class="legend-sample diff-removed" aria-hidden="true">text</span> Only in String 1 (removed)</div>
+                        <div class="legend-item"><span class="legend-sample diff-added" aria-hidden="true">text</span> Only in String 2 (added)</div>
+                        <div class="legend-item"><span class="legend-sample diff-match" aria-hidden="true">text</span> Common subsequence (matching)</div>
+                        <div class="legend-item">No highlighting - Different characters</div>
                     </div>
                 </div>
             </div>
