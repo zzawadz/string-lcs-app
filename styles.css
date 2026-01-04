@@ -278,6 +278,8 @@ button:active {
     padding: 20px;
     border-radius: 8px;
     border: 2px solid #ddd;
+    max-height: 600px;
+    overflow-y: auto;
 }
 
 .alignment-header {
