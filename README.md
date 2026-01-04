@@ -93,9 +93,24 @@ Works on all modern browsers:
 - Safari (latest)
 - Opera (latest)
 
+## Source Code
+
+This project is open source and available on GitHub:
+- **Repository**: [https://github.com/zzawadz/string-lcs-app](https://github.com/zzawadz/string-lcs-app)
+- **View Source**: Browse the code, fork the project, or contribute improvements
+- **Clone**: `git clone https://github.com/zzawadz/string-lcs-app.git`
+
 ## Bug Reports & Feature Requests
 
-Found a bug or have a feature request? Please [open an issue](https://github.com/zzawadz/string-lcs-app/issues) on GitHub.
+We welcome feedback and contributions! If you encounter any issues or have ideas for improvements:
+
+- **Report Issues**: [Open an issue](https://github.com/zzawadz/string-lcs-app/issues) on GitHub
+- **Feature Requests**: Use GitHub Issues to suggest new features or enhancements
+- **Bug Reports**: Please include:
+  - Steps to reproduce the issue
+  - Expected vs actual behavior
+  - Browser and version information
+  - Any relevant screenshots or error messages
 
 ## License
 

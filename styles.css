@@ -695,6 +695,20 @@ body.high-contrast .attribution a:hover {
     color: #0f0;
 }
 
+.footer-links {
+    margin-bottom: 8px;
+    font-size: 0.95em;
+}
+
+.footer-separator {
+    margin: 0 10px;
+    color: #999;
+}
+
+body.high-contrast .footer-separator {
+    color: #666;
+}
+
 @media (max-width: 768px) {
     .input-section {
         grid-template-columns: 1fr;
