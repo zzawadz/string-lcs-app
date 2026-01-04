@@ -140,25 +140,28 @@ function getLCSString(aligned1, aligned2) {
 }
 
 function formatAlignment(str, codes) {
-    // Color mapping from the reference app
-    const colors = {
-        0: '#e0e0d1',  // light beige - mismatch
-        1: '#ffff99',  // light yellow - gap in string2
-        2: '#99bbff',  // light blue - gap in string1
-        3: ''          // no color - match
+    // Use CSS classes for consistent styling and high contrast support
+    const classNames = {
+        0: 'align-mismatch',      // mismatch (different chars at same position)
+        1: 'align-gap-string2',   // gap in string2 (char only in string1 - removed)
+        2: 'align-gap-string1',   // gap in string1 (char only in string2 - added)
+        3: 'align-match'          // match (same char in both)
     };
 
     let formatted = '';
     for (let i = 0; i < str.length; i++) {
         const char = str[i];
         const code = codes[i];
-        const bgColor = colors[code];
+        const className = classNames[code];
 
         // Escape HTML to prevent XSS
         const escapedChar = escapeHtml(char);
 
-        if (bgColor) {
-            formatted += `<span style="background-color: ${bgColor}; display: inline; overflow: hidden; padding: 0px; margin: 0px;">${escapedChar}</span>`;
+        if (className && code !== 3) {
+            formatted += `<span class="${className}">${escapedChar}</span>`;
+        } else if (code === 3) {
+            // Match - highlight as common subsequence
+            formatted += `<span class="${className}">${escapedChar}</span>`;
         } else {
             formatted += escapedChar;
         }
