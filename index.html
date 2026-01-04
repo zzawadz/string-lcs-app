@@ -268,13 +268,14 @@
 
         function outputLCS(backtrack, x, y, i, j) {
             if (i === 0 && j === 0) {
-                return { first: '', second: '' };
+                return { first: '', second: '', codes: [] };
             }
 
             if (i > 0 && j === 0) {
                 const result = outputLCS(backtrack, x, y, i - 1, j);
                 result.first += x[i - 1];
                 result.second += '-';
+                result.codes.push(1);
                 return result;
             }
 
@@ -282,6 +283,7 @@
                 const result = outputLCS(backtrack, x, y, i, j - 1);
                 result.first += '-';
                 result.second += y[j - 1];
+                result.codes.push(2);
                 return result;
             }
 
@@ -289,28 +291,32 @@
                 const result = outputLCS(backtrack, x, y, i - 1, j);
                 result.first += x[i - 1];
                 result.second += '-';
+                result.codes.push(1);
                 return result;
             }
             if (backtrack[i][j] === 2) {
                 const result = outputLCS(backtrack, x, y, i, j - 1);
                 result.first += '-';
                 result.second += y[j - 1];
+                result.codes.push(2);
                 return result;
             }
             if (backtrack[i][j] === 3) {
                 const result = outputLCS(backtrack, x, y, i - 1, j - 1);
                 result.first += x[i - 1];
                 result.second += x[i - 1];
+                result.codes.push(3);
                 return result;
             }
             if (backtrack[i][j] === 4) {
                 const result = outputLCS(backtrack, x, y, i - 1, j - 1);
                 result.first += x[i - 1];
                 result.second += y[j - 1];
+                result.codes.push(0);
                 return result;
             }
 
-            return { first: '', second: '' };
+            return { first: '', second: '', codes: [] };
         }
 
         function longestCommonSubseq(x, y) {
@@ -329,15 +335,21 @@
             return lcs;
         }
 
-        function formatAlignment(str) {
+        function formatAlignment(str, codes) {
+            // Color mapping from the reference app
+            const colors = {
+                0: '#e0e0d1',  // light beige - mismatch
+                1: '#ffff99',  // light yellow - gap in string2
+                2: '#99bbff',  // light blue - gap in string1
+                3: '#ff9999'   // light red - match
+            };
+
             let formatted = '';
             for (let i = 0; i < str.length; i++) {
                 const char = str[i];
-                if (char === '-') {
-                    formatted += `<span class="gap">${char}</span>`;
-                } else {
-                    formatted += `<span class="match">${char}</span>`;
-                }
+                const code = codes[i];
+                const bgColor = colors[code] || '#ffffff';
+                formatted += `<span style="background-color: ${bgColor}; display: inline; overflow: hidden; padding: 0px; margin: 0px;">${char}</span>`;
             }
             return formatted;
         }
@@ -358,8 +370,8 @@
             // Display results
             document.getElementById('lcsResult').textContent = lcsString || '(empty)';
             document.getElementById('lcsLength').textContent = `Length: ${lcsString.length}`;
-            document.getElementById('alignedString1').innerHTML = formatAlignment(result.first);
-            document.getElementById('alignedString2').innerHTML = formatAlignment(result.second);
+            document.getElementById('alignedString1').innerHTML = formatAlignment(result.first, result.codes);
+            document.getElementById('alignedString2').innerHTML = formatAlignment(result.second, result.codes);
 
             // Show result section
             document.getElementById('resultSection').classList.add('show');
