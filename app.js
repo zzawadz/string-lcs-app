@@ -36,6 +36,9 @@ function escapeHtml(unsafe) {
 // View mode state (alignment or side-by-side)
 let currentViewMode = 'alignment'; // 'alignment' or 'side-by-side'
 
+// Comparison mode state ('lcs' or 'char-compare')
+let comparisonMode = 'lcs';
+
 function longestCommonBacktrack(x, y) {
     const m = x.length;
     const n = y.length;
@@ -137,6 +140,55 @@ function getLCSString(aligned1, aligned2) {
         }
     }
     return lcs;
+}
+
+// Character-by-character comparison
+function characterByCharacterCompare(x, y) {
+    const maxLen = Math.max(x.length, y.length);
+    let first = '';
+    let second = '';
+    let codes = [];
+
+    for (let i = 0; i < maxLen; i++) {
+        const char1 = i < x.length ? x[i] : '';
+        const char2 = i < y.length ? y[i] : '';
+
+        if (char1 === '' && char2 !== '') {
+            // String 1 is shorter - gap in string 1
+            first += '-';
+            second += char2;
+            codes.push(2);
+        } else if (char2 === '' && char1 !== '') {
+            // String 2 is shorter - gap in string 2
+            first += char1;
+            second += '-';
+            codes.push(1);
+        } else if (char1 === char2) {
+            // Characters match
+            first += char1;
+            second += char2;
+            codes.push(3);
+        } else {
+            // Characters differ (mismatch)
+            first += char1;
+            second += char2;
+            codes.push(0);
+        }
+    }
+
+    return { first, second, codes };
+}
+
+function getComparisonString(aligned1, aligned2) {
+    let result = '';
+    for (let i = 0; i < aligned1.length; i++) {
+        if (aligned1[i] === aligned2[i] && aligned1[i] !== '-') {
+            result += aligned1[i];
+        } else {
+            result += 'X';
+        }
+    }
+    return result;
 }
 
 function formatAlignment(str, codes) {
@@ -282,28 +334,46 @@ function computeLCS() {
 
     // Validation
     if (!string1 || !string2) {
-        showError('⚠️ Please enter both strings before computing the LCS.');
+        showError('⚠️ Please enter both strings before computing the comparison.');
         return;
     }
 
     // Show estimated time if needed
-    const timeEstimate = estimateTime(string1.length, string2.length);
+    const timeEstimate = comparisonMode === 'lcs' ? estimateTime(string1.length, string2.length) : '';
     if (timeEstimate) {
         showLoading(timeEstimate);
     } else {
-        showLoading();
+        showLoading(comparisonMode === 'lcs' ? 'Computing LCS...' : 'Comparing strings...');
     }
 
     // Use setTimeout to allow the loading indicator to render
     setTimeout(() => {
         try {
-            // Compute LCS
-            const result = longestCommonSubseq(string1, string2);
-            const lcsString = getLCSString(result.first, result.second);
+            let result;
+            let resultString;
+
+            // Choose algorithm based on comparison mode
+            if (comparisonMode === 'lcs') {
+                // Compute LCS
+                result = longestCommonSubseq(string1, string2);
+                resultString = getLCSString(result.first, result.second);
+            } else {
+                // Character-by-character comparison
+                result = characterByCharacterCompare(string1, string2);
+                resultString = getComparisonString(result.first, result.second);
+            }
+
+            // Update header based on mode
+            const lcsHeader = document.querySelector('.lcs-header');
+            if (comparisonMode === 'lcs') {
+                lcsHeader.childNodes[0].textContent = 'Longest Common Subsequence: ';
+            } else {
+                lcsHeader.childNodes[0].textContent = 'Comparison Result: ';
+            }
 
             // Display results - use textContent for plain text (XSS safe)
-            document.getElementById('lcsResult').textContent = lcsString || '(empty)';
-            document.getElementById('lcsLength').textContent = `Length: ${lcsString.length}`;
+            document.getElementById('lcsResult').textContent = resultString || '(empty)';
+            document.getElementById('lcsLength').textContent = `Length: ${resultString.length}`;
 
             // Display alignment view (with HTML escaping in formatAlignment)
             document.getElementById('alignedString1').innerHTML = formatAlignment(result.first, result.codes);
@@ -321,8 +391,8 @@ function computeLCS() {
             // Show result section
             document.getElementById('resultSection').classList.add('show');
         } catch (error) {
-            showError('❌ An error occurred while computing the LCS. Please try with smaller inputs.');
-            console.error('LCS computation error:', error);
+            showError('❌ An error occurred while computing the comparison. Please try with smaller inputs.');
+            console.error('Comparison computation error:', error);
         } finally {
             hideLoading();
         }
@@ -430,6 +500,23 @@ function announceToScreenReader(message) {
     }, 100);
 }
 
+// Set comparison mode and update button states
+function setComparisonMode(mode) {
+    comparisonMode = mode;
+
+    // Update active button state
+    const lcsButton = document.getElementById('findLcsButton');
+    const compareButton = document.getElementById('compareStringsButton');
+
+    if (mode === 'lcs') {
+        lcsButton.classList.add('active');
+        compareButton.classList.remove('active');
+    } else {
+        lcsButton.classList.remove('active');
+        compareButton.classList.add('active');
+    }
+}
+
 // Load preset example
 function loadPreset(presetName) {
     if (presetName && PRESETS[presetName]) {
@@ -501,8 +588,16 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 
-    // Compute button event listener
-    document.getElementById('computeButton').addEventListener('click', computeLCS);
+    // Action button event listeners
+    document.getElementById('findLcsButton').addEventListener('click', function() {
+        setComparisonMode('lcs');
+        computeLCS();
+    });
+
+    document.getElementById('compareStringsButton').addEventListener('click', function() {
+        setComparisonMode('char-compare');
+        computeLCS();
+    });
 
     // Copy button event listeners
     document.getElementById('copyLCS').addEventListener('click', copyLCS);
