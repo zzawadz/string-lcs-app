@@ -35,6 +35,21 @@
             </select>
         </div>
 
+        <!-- Comparison Mode Selector -->
+        <div class="mode-selector">
+            <label>Comparison Mode:</label>
+            <div class="radio-group">
+                <label class="radio-label">
+                    <input type="radio" name="comparisonMode" value="lcs" checked aria-label="Longest Common Subsequence mode">
+                    <span>Find LCS</span>
+                </label>
+                <label class="radio-label">
+                    <input type="radio" name="comparisonMode" value="char-compare" aria-label="Character-by-character comparison mode">
+                    <span>Character Comparison</span>
+                </label>
+            </div>
+        </div>
+
         <!-- Error Message Container -->
         <div id="errorMessage" class="error-message" role="alert" aria-live="assertive" aria-atomic="true"></div>
 

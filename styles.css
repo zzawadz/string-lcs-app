@@ -63,6 +63,54 @@ h1 {
     border-color: #667eea;
 }
 
+.mode-selector {
+    text-align: center;
+    margin-bottom: 12px;
+    padding: 12px;
+    background: #f8f9fa;
+    border-radius: 8px;
+}
+
+.mode-selector > label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 600;
+    color: #555;
+    font-size: 0.95em;
+}
+
+.radio-group {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    flex-wrap: wrap;
+}
+
+.radio-label {
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    font-weight: normal;
+    font-size: 0.95em;
+    color: #555;
+    transition: color 0.3s;
+}
+
+.radio-label:hover {
+    color: #667eea;
+}
+
+.radio-label input[type="radio"] {
+    margin-right: 6px;
+    cursor: pointer;
+    width: 18px;
+    height: 18px;
+}
+
+.radio-label span {
+    user-select: none;
+}
+
 .error-message {
     background: #fee;
     border: 2px solid #fcc;
@@ -591,6 +639,23 @@ body.high-contrast .stale-indicator {
     background: #000;
     border-color: #ff0;
     color: #ff0;
+}
+
+body.high-contrast .mode-selector {
+    background: #000;
+    border: 2px solid #fff;
+}
+
+body.high-contrast .mode-selector > label {
+    color: #fff;
+}
+
+body.high-contrast .radio-label {
+    color: #ccc;
+}
+
+body.high-contrast .radio-label:hover {
+    color: #fff;
 }
 
 /* Side-by-Side Display */
