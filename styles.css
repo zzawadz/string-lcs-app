@@ -63,54 +63,6 @@ h1 {
     border-color: #667eea;
 }
 
-.mode-selector {
-    text-align: center;
-    margin-bottom: 12px;
-    padding: 12px;
-    background: #f8f9fa;
-    border-radius: 8px;
-}
-
-.mode-selector > label {
-    display: block;
-    margin-bottom: 8px;
-    font-weight: 600;
-    color: #555;
-    font-size: 0.95em;
-}
-
-.radio-group {
-    display: flex;
-    justify-content: center;
-    gap: 20px;
-    flex-wrap: wrap;
-}
-
-.radio-label {
-    display: flex;
-    align-items: center;
-    cursor: pointer;
-    font-weight: normal;
-    font-size: 0.95em;
-    color: #555;
-    transition: color 0.3s;
-}
-
-.radio-label:hover {
-    color: #667eea;
-}
-
-.radio-label input[type="radio"] {
-    margin-right: 6px;
-    cursor: pointer;
-    width: 18px;
-    height: 18px;
-}
-
-.radio-label span {
-    user-select: none;
-}
-
 .error-message {
     background: #fee;
     border: 2px solid #fcc;
@@ -187,8 +139,43 @@ textarea:focus {
 }
 
 .button-container {
-    text-align: center;
+    display: flex;
+    justify-content: center;
+    gap: 15px;
     margin-bottom: 20px;
+    flex-wrap: wrap;
+}
+
+.action-button {
+    background: white;
+    color: #667eea;
+    border: 2px solid #667eea;
+    padding: 12px 32px;
+    font-size: 1em;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 600;
+    transition: all 0.3s;
+}
+
+.action-button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+    background: #f0f0ff;
+}
+
+.action-button.active {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border-color: transparent;
+}
+
+.action-button.active:hover {
+    box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+}
+
+.action-button:active {
+    transform: translateY(0);
 }
 
 button {
@@ -641,21 +628,20 @@ body.high-contrast .stale-indicator {
     color: #ff0;
 }
 
-body.high-contrast .mode-selector {
+body.high-contrast .action-button {
     background: #000;
-    border: 2px solid #fff;
-}
-
-body.high-contrast .mode-selector > label {
     color: #fff;
+    border-color: #fff;
 }
 
-body.high-contrast .radio-label {
-    color: #ccc;
+body.high-contrast .action-button:hover {
+    background: #333;
 }
 
-body.high-contrast .radio-label:hover {
-    color: #fff;
+body.high-contrast .action-button.active {
+    background: #fff;
+    color: #000;
+    border-color: #fff;
 }
 
 /* Side-by-Side Display */

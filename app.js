@@ -500,21 +500,21 @@ function announceToScreenReader(message) {
     }, 100);
 }
 
-// Change comparison mode
-function changeComparisonMode(mode) {
+// Set comparison mode and update button states
+function setComparisonMode(mode) {
     comparisonMode = mode;
 
-    // Update button text based on mode
-    const computeButton = document.getElementById('computeButton');
-    const buttonText = mode === 'lcs' ? 'Find LCS' : 'Compare Strings';
-    computeButton.childNodes[0].textContent = buttonText + ' ';
+    // Update active button state
+    const lcsButton = document.getElementById('findLcsButton');
+    const compareButton = document.getElementById('compareStringsButton');
 
-    // Check if results are now stale
-    checkStaleResults();
-
-    // Announce to screen readers
-    const modeText = mode === 'lcs' ? 'Longest Common Subsequence mode' : 'Character-by-character comparison mode';
-    announceToScreenReader(`Switched to ${modeText}`);
+    if (mode === 'lcs') {
+        lcsButton.classList.add('active');
+        compareButton.classList.remove('active');
+    } else {
+        lcsButton.classList.remove('active');
+        compareButton.classList.add('active');
+    }
 }
 
 // Load preset example
@@ -588,8 +588,16 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 
-    // Compute button event listener
-    document.getElementById('computeButton').addEventListener('click', computeLCS);
+    // Action button event listeners
+    document.getElementById('findLcsButton').addEventListener('click', function() {
+        setComparisonMode('lcs');
+        computeLCS();
+    });
+
+    document.getElementById('compareStringsButton').addEventListener('click', function() {
+        setComparisonMode('char-compare');
+        computeLCS();
+    });
 
     // Copy button event listeners
     document.getElementById('copyLCS').addEventListener('click', copyLCS);
@@ -603,13 +611,6 @@ document.addEventListener('DOMContentLoaded', function() {
     // Preset dropdown event listener
     document.getElementById('presets').addEventListener('change', function(e) {
         loadPreset(e.target.value);
-    });
-
-    // Comparison mode radio button event listeners
-    document.querySelectorAll('input[name="comparisonMode"]').forEach(radio => {
-        radio.addEventListener('change', function(e) {
-            changeComparisonMode(e.target.value);
-        });
     });
 
     // Restore high contrast preference from localStorage

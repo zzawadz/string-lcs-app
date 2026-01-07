@@ -35,21 +35,6 @@
             </select>
         </div>
 
-        <!-- Comparison Mode Selector -->
-        <div class="mode-selector">
-            <label>Comparison Mode:</label>
-            <div class="radio-group">
-                <label class="radio-label">
-                    <input type="radio" name="comparisonMode" value="lcs" checked aria-label="Longest Common Subsequence mode">
-                    <span>Find LCS</span>
-                </label>
-                <label class="radio-label">
-                    <input type="radio" name="comparisonMode" value="char-compare" aria-label="Character-by-character comparison mode">
-                    <span>Character Comparison</span>
-                </label>
-            </div>
-        </div>
-
         <!-- Error Message Container -->
         <div id="errorMessage" class="error-message" role="alert" aria-live="assertive" aria-atomic="true"></div>
 
@@ -81,8 +66,12 @@
         </div>
 
         <div class="button-container">
-            <button id="computeButton" aria-label="Compute the longest common subsequence">
+            <button id="findLcsButton" class="action-button active" aria-label="Find the longest common subsequence">
                 Find LCS
+                <span class="keyboard-hint" aria-hidden="true">(Ctrl+Enter)</span>
+            </button>
+            <button id="compareStringsButton" class="action-button" aria-label="Compare strings character-by-character">
+                Compare Strings
                 <span class="keyboard-hint" aria-hidden="true">(Ctrl+Enter)</span>
             </button>
         </div>
