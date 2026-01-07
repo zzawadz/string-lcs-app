@@ -578,16 +578,6 @@ document.addEventListener('DOMContentLoaded', function() {
     updateCharCount('string1', 'charCount1', 'warning1');
     updateCharCount('string2', 'charCount2', 'warning2');
 
-    // Ctrl+Enter to compute
-    [string1, string2].forEach(textarea => {
-        textarea.addEventListener('keydown', function(e) {
-            if (e.key === 'Enter' && e.ctrlKey) {
-                e.preventDefault();
-                computeLCS();
-            }
-        });
-    });
-
     // Action button event listeners
     document.getElementById('findLcsButton').addEventListener('click', function() {
         setComparisonMode('lcs');
@@ -618,18 +608,4 @@ document.addEventListener('DOMContentLoaded', function() {
     if (savedHighContrast) {
         document.body.classList.add('high-contrast');
     }
-
-    // Keyboard shortcuts - ESC to close loading, H for high contrast, V for view mode
-    document.addEventListener('keydown', function(e) {
-        // H key for high contrast toggle (Alt+H to avoid conflicts)
-        if (e.altKey && e.key === 'h') {
-            e.preventDefault();
-            toggleHighContrast();
-        }
-        // V key for view mode toggle (Alt+V)
-        if (e.altKey && e.key === 'v') {
-            e.preventDefault();
-            toggleViewMode();
-        }
-    });
 });
