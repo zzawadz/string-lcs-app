@@ -578,11 +578,16 @@ document.addEventListener('DOMContentLoaded', function() {
     updateCharCount('string1', 'charCount1', 'warning1');
     updateCharCount('string2', 'charCount2', 'warning2');
 
-    // Ctrl+Enter to compute
+    // Keyboard shortcuts: Ctrl+Enter for LCS, Shift+Enter for Compare Strings
     [string1, string2].forEach(textarea => {
         textarea.addEventListener('keydown', function(e) {
             if (e.key === 'Enter' && e.ctrlKey) {
                 e.preventDefault();
+                setComparisonMode('lcs');
+                computeLCS();
+            } else if (e.key === 'Enter' && e.shiftKey) {
+                e.preventDefault();
+                setComparisonMode('char-compare');
                 computeLCS();
             }
         });
