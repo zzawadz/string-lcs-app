@@ -467,13 +467,6 @@ button:active {
     transform: translateY(0);
 }
 
-/* Keyboard hint */
-.keyboard-hint {
-    font-size: 0.75em;
-    opacity: 0.8;
-    margin-left: 8px;
-}
-
 /* Enhanced Focus Indicators */
 button:focus,
 textarea:focus,
@@ -779,9 +772,5 @@ body.high-contrast .footer-separator {
 
     .accessibility-controls {
         flex-direction: column;
-    }
-
-    .keyboard-hint {
-        display: none;
     }
 }
