@@ -24,7 +24,6 @@ A powerful, accessible, client-side web application that finds the longest commo
 ### Accessibility Features
 - **High Contrast Mode**: Toggle high contrast for better visibility
 - **ARIA Labels**: Full screen reader support
-- **Keyboard Navigation**: Ctrl+Enter to compute results
 - **Live Regions**: Real-time updates for character counts and warnings
 
 ### Additional Features
@@ -40,7 +39,7 @@ A powerful, accessible, client-side web application that finds the longest commo
 1. Open `index.html` in any modern web browser
 2. Enter your first string in the left textarea
 3. Enter your second string in the right textarea
-4. Click "Find LCS" or press **Ctrl+Enter**
+4. Click "Find LCS" to compute the longest common subsequence
 
 ### Understanding Results
 The application displays:
