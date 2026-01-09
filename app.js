@@ -671,7 +671,7 @@ function computeLCSWithSteps(x, y) {
     });
 
     // Generate backtracking steps
-    const backtrackSteps = generateBacktrackSteps(backtrack, x, y, m, n);
+    const backtrackSteps = generateBacktrackSteps(backtrack, x, y, m, n, res);
 
     return {
         steps: steps,
@@ -683,47 +683,54 @@ function computeLCSWithSteps(x, y) {
 }
 
 // Generate backtracking steps
-function generateBacktrackSteps(backtrack, x, y, startI, startJ) {
+function generateBacktrackSteps(backtrack, x, y, startI, startJ, dpTable) {
     const steps = [];
     let i = startI;
     let j = startJ;
     const path = [];
+    const lcsChars = [];
 
     steps.push({
         type: 'backtrack-start',
         i: i,
         j: j,
         path: [...path],
-        explanation: `Starting backtracking from cell [${i},${j}]. We'll follow the backtrack pointers to find the LCS.`
+        dpTable: JSON.parse(JSON.stringify(dpTable)),
+        backtrackTable: JSON.parse(JSON.stringify(backtrack)),
+        lcsChars: [...lcsChars],
+        explanation: `Starting backtracking from cell [${i},${j}] (value: ${dpTable[i][j]}). The DP table is fully populated. Now we'll trace back through it to find which characters form the LCS.`
     });
 
     while (i > 0 || j > 0) {
         path.push({ i, j });
 
-        let explanation = `At cell [${i},${j}]. `;
+        let explanation = `At cell [${i},${j}] (value: ${dpTable[i][j]}). `;
         let nextI = i;
         let nextJ = j;
+        let isMatch = false;
 
         if (i === 0 && j === 0) {
             break;
         } else if (i > 0 && j === 0) {
-            explanation += `Only top is available. Move up to [${i-1},${j}].`;
+            explanation += `Only row boundary - move up to [${i-1},${j}].`;
             nextI = i - 1;
         } else if (i === 0 && j > 0) {
-            explanation += `Only left is available. Move left to [${i},${j-1}].`;
+            explanation += `Only column boundary - move left to [${i},${j-1}].`;
             nextJ = j - 1;
         } else if (backtrack[i][j] === 1) {
-            explanation += `Backtrack pointer goes UP. Move to [${i-1},${j}].`;
+            explanation += `Value came from above. Move UP to [${i-1},${j}].`;
             nextI = i - 1;
         } else if (backtrack[i][j] === 2) {
-            explanation += `Backtrack pointer goes LEFT. Move to [${i},${j-1}].`;
+            explanation += `Value came from left. Move LEFT to [${i},${j-1}].`;
             nextJ = j - 1;
         } else if (backtrack[i][j] === 3) {
-            explanation += `MATCH! Character '${x[i-1]}' is part of LCS. Move diagonally to [${i-1},${j-1}].`;
+            isMatch = true;
+            lcsChars.unshift(x[i-1]);
+            explanation += `✓ MATCH! Character '${x[i-1]}' is part of the LCS! Move diagonally to [${i-1},${j-1}].\nLCS so far (reading backwards): ${lcsChars.join('')}`;
             nextI = i - 1;
             nextJ = j - 1;
         } else if (backtrack[i][j] === 4) {
-            explanation += `Mismatch, move diagonally to [${i-1},${j-1}].`;
+            explanation += `Characters don't match (value same as diagonal). Move diagonally to [${i-1},${j-1}].`;
             nextI = i - 1;
             nextJ = j - 1;
         }
@@ -734,9 +741,12 @@ function generateBacktrackSteps(backtrack, x, y, startI, startJ) {
             j: j,
             nextI: nextI,
             nextJ: nextJ,
-            isMatch: backtrack[i][j] === 3,
-            char: backtrack[i][j] === 3 ? x[i-1] : null,
+            isMatch: isMatch,
+            char: isMatch ? x[i-1] : null,
             path: [...path],
+            dpTable: JSON.parse(JSON.stringify(dpTable)),
+            backtrackTable: JSON.parse(JSON.stringify(backtrack)),
+            lcsChars: [...lcsChars],
             explanation: explanation
         });
 
@@ -748,7 +758,10 @@ function generateBacktrackSteps(backtrack, x, y, startI, startJ) {
     steps.push({
         type: 'backtrack-complete',
         path: [...path],
-        explanation: 'Backtracking complete! The highlighted path shows how we constructed the LCS.'
+        dpTable: JSON.parse(JSON.stringify(dpTable)),
+        backtrackTable: JSON.parse(JSON.stringify(backtrack)),
+        lcsChars: [...lcsChars],
+        explanation: `Backtracking complete! The LCS is: "${lcsChars.join('')}"\n\nThe highlighted path (in blue) shows the cells we visited. The green cells show where characters matched and contributed to the LCS.`
     });
 
     return steps;
@@ -797,11 +810,9 @@ function renderDPTable(step, mode = 'filling') {
                 cellClass += ' current-cell';
             }
 
-            // Highlight cells being compared
-            if (step.type === 'compute' && step.i === i && step.j === j) {
-                if (i > 0 && j > 0) {
-                    // Mark the cells we're comparing
-                }
+            // Highlight next cell in backtracking
+            if (mode === 'backtracking' && step.nextI === i && step.nextJ === j) {
+                cellClass += ' next-cell';
             }
 
             // For backtracking mode, highlight the path
@@ -812,9 +823,16 @@ function renderDPTable(step, mode = 'filling') {
                 }
             }
 
-            // Highlight matched cells in backtracking
-            if (mode === 'backtracking' && step.type === 'backtrack' && step.isMatch && step.i === i && step.j === j) {
-                cellClass += ' match-cell';
+            // Highlight all matched cells that contributed to LCS
+            if (mode === 'backtracking' && step.lcsChars && backtrackTable) {
+                // Check if this cell represents a match in the backtrack
+                if (i > 0 && j > 0 && backtrackTable[i][j] === 3) {
+                    // This cell had a match - check if it's in our completed path
+                    const inCompletedPath = step.path.some(p => p.i === i && p.j === j);
+                    if (inCompletedPath) {
+                        cellClass += ' match-cell';
+                    }
+                }
             }
 
             html += `<td class="${cellClass}" data-i="${i}" data-j="${j}">

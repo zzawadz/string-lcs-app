@@ -234,6 +234,10 @@
                         <span>Current cell being computed</span>
                     </div>
                     <div class="legend-item">
+                        <span class="legend-box next-cell-box"></span>
+                        <span>Next cell to visit (backtracking)</span>
+                    </div>
+                    <div class="legend-item">
                         <span class="legend-box path-cell-box"></span>
                         <span>Backtracking path</span>
                     </div>
@@ -241,6 +245,63 @@
                         <span class="legend-box match-cell-box"></span>
                         <span>Matched character (part of LCS)</span>
                     </div>
+                </div>
+            </div>
+
+            <!-- Algorithm Description -->
+            <div class="algorithm-description">
+                <h3>How the Algorithm Works</h3>
+
+                <div class="algorithm-section">
+                    <h4>📊 Table Filling Phase</h4>
+                    <p>
+                        The algorithm builds a 2D table where each cell [i,j] represents the length of the
+                        longest common subsequence between the first i characters of String 1 and the first
+                        j characters of String 2.
+                    </p>
+                    <ul>
+                        <li><strong>If characters match:</strong> LCS[i,j] = LCS[i-1,j-1] + 1</li>
+                        <li><strong>If characters don't match:</strong> LCS[i,j] = max(LCS[i-1,j], LCS[i,j-1])</li>
+                    </ul>
+                    <p>
+                        The bottom-right cell contains the length of the LCS.
+                    </p>
+                </div>
+
+                <div class="algorithm-section">
+                    <h4>🔙 Backtracking Phase</h4>
+                    <p>
+                        Once the table is filled, we trace back from the bottom-right corner to find the
+                        actual subsequence:
+                    </p>
+                    <ul>
+                        <li><strong>If characters match:</strong> Include this character in the LCS and move diagonally (↖)</li>
+                        <li><strong>If value came from above:</strong> Move up (↑)</li>
+                        <li><strong>If value came from left:</strong> Move left (←)</li>
+                    </ul>
+                    <p>
+                        The characters collected during diagonal moves form the LCS.
+                    </p>
+                </div>
+
+                <div class="algorithm-section">
+                    <h4>⚡ Complexity</h4>
+                    <ul>
+                        <li><strong>Time:</strong> O(m × n) where m and n are the lengths of the two strings</li>
+                        <li><strong>Space:</strong> O(m × n) for the DP table</li>
+                    </ul>
+                </div>
+
+                <div class="algorithm-section">
+                    <h4>💡 Example</h4>
+                    <p>
+                        For strings "ABCD" and "ACBD":
+                    </p>
+                    <ul>
+                        <li>The DP table fills left-to-right, top-to-bottom</li>
+                        <li>Characters 'A', 'B', 'D' match in order → LCS = "ABD" (length 3)</li>
+                        <li>The backtracking path shows which cells contributed to the LCS</li>
+                    </ul>
                 </div>
             </div>
         </div>

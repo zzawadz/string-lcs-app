@@ -1009,12 +1009,31 @@ body.high-contrast .footer-separator {
     color: white;
 }
 
+.dp-cell.next-cell {
+    background: #ffb347 !important;
+    border: 3px solid #ff8c00;
+    animation: glow 1s infinite;
+}
+
+.dp-cell.next-cell .cell-value {
+    color: #333;
+}
+
 @keyframes pulse {
     0%, 100% {
         transform: scale(1);
     }
     50% {
         transform: scale(1.05);
+    }
+}
+
+@keyframes glow {
+    0%, 100% {
+        box-shadow: 0 0 5px rgba(255, 140, 0, 0.5);
+    }
+    50% {
+        box-shadow: 0 0 15px rgba(255, 140, 0, 0.8);
     }
 }
 
@@ -1088,6 +1107,62 @@ body.high-contrast .footer-separator {
 
 .match-cell-box {
     background: #2ecc71;
+}
+
+.next-cell-box {
+    background: #ffb347;
+    border-color: #ff8c00;
+}
+
+/* Algorithm Description */
+.algorithm-description {
+    background: white;
+    padding: 20px;
+    border-radius: 8px;
+    border: 2px solid #667eea;
+    margin-top: 15px;
+}
+
+.algorithm-description h3 {
+    color: #667eea;
+    margin-bottom: 20px;
+    font-size: 1.3em;
+    text-align: center;
+}
+
+.algorithm-section {
+    margin-bottom: 20px;
+}
+
+.algorithm-section:last-child {
+    margin-bottom: 0;
+}
+
+.algorithm-section h4 {
+    color: #555;
+    margin-bottom: 10px;
+    font-size: 1.1em;
+}
+
+.algorithm-section p {
+    color: #666;
+    line-height: 1.6;
+    margin-bottom: 10px;
+}
+
+.algorithm-section ul {
+    color: #666;
+    line-height: 1.8;
+    margin-left: 20px;
+}
+
+.algorithm-section li {
+    margin-bottom: 5px;
+}
+
+.algorithm-section strong {
+    color: #333;
+    font-weight: 600;
 }
 
 /* High Contrast Mode for Visualization */
@@ -1185,6 +1260,16 @@ body.high-contrast .dp-cell.match-cell .cell-value {
     color: #000;
 }
 
+body.high-contrast .dp-cell.next-cell {
+    background: #f80 !important;
+    color: #000;
+    border-color: #f80;
+}
+
+body.high-contrast .dp-cell.next-cell .cell-value {
+    color: #000;
+}
+
 body.high-contrast .explanation-title {
     color: #0ff;
 }
@@ -1210,6 +1295,33 @@ body.high-contrast .path-cell-box {
 
 body.high-contrast .match-cell-box {
     background: #0f0;
+}
+
+body.high-contrast .next-cell-box {
+    background: #f80;
+    border-color: #f80;
+}
+
+body.high-contrast .algorithm-description {
+    background: #000;
+    border-color: #fff;
+}
+
+body.high-contrast .algorithm-description h3 {
+    color: #0ff;
+}
+
+body.high-contrast .algorithm-section h4 {
+    color: #fff;
+}
+
+body.high-contrast .algorithm-section p,
+body.high-contrast .algorithm-section ul {
+    color: #ccc;
+}
+
+body.high-contrast .algorithm-section strong {
+    color: #fff;
 }
 
 @media (max-width: 768px) {
