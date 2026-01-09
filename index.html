@@ -72,6 +72,9 @@
             <button id="compareStringsButton" class="action-button" aria-label="Compare strings character-by-character">
                 Compare Strings
             </button>
+            <button id="visualizeButton" class="action-button visualization-button" aria-label="Visualize the LCS algorithm step-by-step">
+                📊 Visualize Algorithm
+            </button>
         </div>
 
         <!-- Loading Indicator -->
@@ -147,6 +150,158 @@
                         <div class="legend-item"><span class="legend-sample diff-match" aria-hidden="true">text</span> Common subsequence (matching)</div>
                         <div class="legend-item">No highlighting - Different characters</div>
                     </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Algorithm Visualization Section -->
+        <div id="visualizationSection" class="visualization-section" role="region" aria-label="Algorithm visualization">
+            <div class="visualization-title">
+                <h2>Algorithm Visualization</h2>
+                <p class="visualization-subtitle">Step-by-step walkthrough of the LCS dynamic programming algorithm</p>
+            </div>
+
+            <!-- Mode Toggle -->
+            <div class="mode-toggle-container">
+                <div class="mode-toggle-buttons">
+                    <button id="modeFillingButton" class="mode-button active" aria-label="Show table filling phase">
+                        Table Filling
+                    </button>
+                    <button id="modeBacktrackButton" class="mode-button" aria-label="Show backtracking phase">
+                        Backtracking
+                    </button>
+                </div>
+            </div>
+
+            <!-- Playback Controls -->
+            <div class="playback-controls">
+                <div class="playback-buttons">
+                    <button id="resetButton" class="control-button" aria-label="Reset to first step" title="Reset">
+                        ⏮ Reset
+                    </button>
+                    <button id="stepBackButton" class="control-button" aria-label="Step backward" title="Previous step">
+                        ⏪ Back
+                    </button>
+                    <button id="playButton" class="control-button play-button" aria-label="Play animation" title="Play">
+                        ▶ Play
+                    </button>
+                    <button id="pauseButton" class="control-button pause-button" aria-label="Pause animation" title="Pause" style="display: none;">
+                        ⏸ Pause
+                    </button>
+                    <button id="stepForwardButton" class="control-button" aria-label="Step forward" title="Next step">
+                        Forward ⏩
+                    </button>
+                </div>
+
+                <div class="speed-controls">
+                    <span class="speed-label">Speed:</span>
+                    <button id="speed-slow" class="speed-button" aria-label="Slow speed">
+                        🐌 Slow
+                    </button>
+                    <button id="speed-normal" class="speed-button active" aria-label="Normal speed">
+                        🚶 Normal
+                    </button>
+                    <button id="speed-fast" class="speed-button" aria-label="Fast speed">
+                        🏃 Fast
+                    </button>
+                </div>
+            </div>
+
+            <!-- Step Counter -->
+            <div class="step-counter-container">
+                <div id="stepCounter" class="step-counter" aria-live="polite">Step 0 of 0</div>
+            </div>
+
+            <!-- DP Table Visualization -->
+            <div class="dp-table-wrapper">
+                <div id="dpTableContainer" class="dp-table-container"></div>
+            </div>
+
+            <!-- Explanation Panel -->
+            <div class="explanation-panel">
+                <div class="explanation-title">💡 Explanation</div>
+                <div id="stepExplanation" class="explanation-content" aria-live="polite" aria-atomic="true">
+                    Click "Play" or use the step controls to see how the algorithm works!
+                </div>
+            </div>
+
+            <!-- Legend -->
+            <div class="visualization-legend">
+                <div class="legend-title">Legend:</div>
+                <div class="legend-items">
+                    <div class="legend-item">
+                        <span class="legend-box current-cell-box"></span>
+                        <span>Current cell being computed</span>
+                    </div>
+                    <div class="legend-item">
+                        <span class="legend-box next-cell-box"></span>
+                        <span>Next cell to visit (backtracking)</span>
+                    </div>
+                    <div class="legend-item">
+                        <span class="legend-box path-cell-box"></span>
+                        <span>Backtracking path</span>
+                    </div>
+                    <div class="legend-item">
+                        <span class="legend-box match-cell-box"></span>
+                        <span>Matched character (part of LCS)</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Algorithm Description -->
+            <div class="algorithm-description">
+                <h3>How the Algorithm Works</h3>
+
+                <div class="algorithm-section">
+                    <h4>📊 Table Filling Phase</h4>
+                    <p>
+                        The algorithm builds a 2D table where each cell [i,j] represents the length of the
+                        longest common subsequence between the first i characters of String 1 and the first
+                        j characters of String 2.
+                    </p>
+                    <ul>
+                        <li><strong>If characters match:</strong> LCS[i,j] = LCS[i-1,j-1] + 1</li>
+                        <li><strong>If characters don't match:</strong> LCS[i,j] = max(LCS[i-1,j], LCS[i,j-1])</li>
+                    </ul>
+                    <p>
+                        The bottom-right cell contains the length of the LCS.
+                    </p>
+                </div>
+
+                <div class="algorithm-section">
+                    <h4>🔙 Backtracking Phase</h4>
+                    <p>
+                        Once the table is filled, we trace back from the bottom-right corner to find the
+                        actual subsequence:
+                    </p>
+                    <ul>
+                        <li><strong>If characters match:</strong> Include this character in the LCS and move diagonally (↖)</li>
+                        <li><strong>If value came from above:</strong> Move up (↑)</li>
+                        <li><strong>If value came from left:</strong> Move left (←)</li>
+                    </ul>
+                    <p>
+                        The characters collected during diagonal moves form the LCS.
+                    </p>
+                </div>
+
+                <div class="algorithm-section">
+                    <h4>⚡ Complexity</h4>
+                    <ul>
+                        <li><strong>Time:</strong> O(m × n) where m and n are the lengths of the two strings</li>
+                        <li><strong>Space:</strong> O(m × n) for the DP table</li>
+                    </ul>
+                </div>
+
+                <div class="algorithm-section">
+                    <h4>💡 Example</h4>
+                    <p>
+                        For strings "ABCD" and "ACBD":
+                    </p>
+                    <ul>
+                        <li>The DP table fills left-to-right, top-to-bottom</li>
+                        <li>Characters 'A', 'B', 'D' match in order → LCS = "ABD" (length 3)</li>
+                        <li>The backtracking path shows which cells contributed to the LCS</li>
+                    </ul>
                 </div>
             </div>
         </div>
