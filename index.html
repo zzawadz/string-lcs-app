@@ -18,9 +18,9 @@
             <button id="toggleHighContrast" class="accessibility-button" aria-label="Toggle high contrast mode" title="Toggle high contrast mode">
                 <span aria-hidden="true">◐</span> High Contrast
             </button>
-            <button id="toggleViewMode" class="accessibility-button" aria-label="Toggle between alignment and side-by-side view" title="Switch visualization mode">
-                <span aria-hidden="true">⇄</span> <span id="viewModeLabel">Side-by-Side</span>
-            </button>
+            <a href="visualization.html" class="accessibility-button visualization-button" aria-label="Visualize the LCS algorithm step-by-step">
+                📊 Visualize Algorithm
+            </a>
         </div>
 
         <!-- Example Presets Dropdown -->
@@ -72,9 +72,6 @@
             <button id="compareStringsButton" class="action-button" aria-label="Compare strings character-by-character">
                 Compare Strings
             </button>
-            <a href="visualization.html" class="action-button visualization-button" aria-label="Visualize the LCS algorithm step-by-step">
-                📊 Visualize Algorithm
-            </a>
         </div>
 
         <!-- Loading Indicator -->
@@ -89,6 +86,12 @@
             </div>
 
             <div class="result-title">Results:</div>
+
+            <div class="result-view-controls">
+                <button id="toggleViewMode" class="accessibility-button" aria-label="Toggle between alignment and side-by-side view" title="Switch visualization mode">
+                    <span aria-hidden="true">⇄</span> <span id="viewModeLabel">Side-by-Side</span>
+                </button>
+            </div>
 
             <div class="lcs-display">
                 <div class="lcs-header">

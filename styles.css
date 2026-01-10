@@ -277,6 +277,12 @@ button:active {
     font-size: 1.1em;
 }
 
+.result-view-controls {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 15px;
+}
+
 .lcs-display {
     background: white;
     padding: 15px;
