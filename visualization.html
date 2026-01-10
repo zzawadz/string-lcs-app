@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LCS Algorithm Visualization</title>
+    <link rel="stylesheet" href="visualization.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>LCS Algorithm Visualization</h1>
+            <p class="subtitle">Step-by-step walkthrough of the Longest Common Subsequence dynamic programming algorithm</p>
+            <a href="index.html" class="back-link">← Back to LCS Finder</a>
+        </header>
+
+        <!-- Accessibility Controls -->
+        <div class="accessibility-controls">
+            <button id="toggleHighContrast" class="accessibility-button" aria-label="Toggle high contrast mode" title="Toggle high contrast mode">
+                <span aria-hidden="true">◐</span> High Contrast
+            </button>
+        </div>
+
+        <!-- Example Presets Dropdown -->
+        <div class="preset-section">
+            <label for="presets">Try an example:</label>
+            <select id="presets" aria-label="Select a preset example to populate the input fields">
+                <option value="">-- Select an example --</option>
+                <option value="dna">DNA Sequences</option>
+                <option value="code">Code Snippets</option>
+                <option value="natural">Natural Language</option>
+                <option value="short">Short Strings</option>
+            </select>
+        </div>
+
+        <!-- Error Message Container -->
+        <div id="errorMessage" class="error-message" role="alert" aria-live="assertive" aria-atomic="true"></div>
+
+        <div class="input-section">
+            <div class="input-group">
+                <label for="string1">String 1:</label>
+                <textarea
+                    id="string1"
+                    placeholder="Enter first string..."
+                    aria-label="First string input for LCS visualization"
+                    aria-describedby="charCount1 warning1">ABCD</textarea>
+                <div class="char-counter" aria-live="polite">
+                    <span id="charCount1">0 characters</span>
+                    <span id="warning1" class="size-warning" role="status"></span>
+                </div>
+            </div>
+            <div class="input-group">
+                <label for="string2">String 2:</label>
+                <textarea
+                    id="string2"
+                    placeholder="Enter second string..."
+                    aria-label="Second string input for LCS visualization"
+                    aria-describedby="charCount2 warning2">ACBD</textarea>
+                <div class="char-counter" aria-live="polite">
+                    <span id="charCount2">0 characters</span>
+                    <span id="warning2" class="size-warning" role="status"></span>
+                </div>
+            </div>
+        </div>
+
+        <div class="button-container">
+            <button id="visualizeButton" class="action-button" aria-label="Visualize the LCS algorithm step-by-step">
+                📊 Start Visualization
+            </button>
+        </div>
+
+        <!-- Loading Indicator -->
+        <div id="loadingIndicator" class="loading-indicator" role="status" aria-live="polite" aria-label="Preparing visualization">
+            <div class="spinner" aria-hidden="true"></div>
+            <div class="loading-text">Preparing visualization...</div>
+        </div>
+
+        <!-- Algorithm Visualization Section -->
+        <div id="visualizationSection" class="visualization-section" role="region" aria-label="Algorithm visualization">
+            <!-- Mode Toggle -->
+            <div class="mode-toggle-container">
+                <div class="mode-toggle-buttons">
+                    <button id="modeFillingButton" class="mode-button active" aria-label="Show table filling phase">
+                        Table Filling
+                    </button>
+                    <button id="modeBacktrackButton" class="mode-button" aria-label="Show backtracking phase">
+                        Backtracking
+                    </button>
+                </div>
+            </div>
+
+            <!-- Playback Controls -->
+            <div class="playback-controls">
+                <div class="playback-buttons">
+                    <button id="resetButton" class="control-button" aria-label="Reset to first step" title="Reset">
+                        ⏮ Reset
+                    </button>
+                    <button id="stepBackButton" class="control-button" aria-label="Step backward" title="Previous step">
+                        ⏪ Back
+                    </button>
+                    <button id="playButton" class="control-button play-button" aria-label="Play animation" title="Play">
+                        ▶ Play
+                    </button>
+                    <button id="pauseButton" class="control-button pause-button" aria-label="Pause animation" title="Pause" style="display: none;">
+                        ⏸ Pause
+                    </button>
+                    <button id="stepForwardButton" class="control-button" aria-label="Step forward" title="Next step">
+                        Forward ⏩
+                    </button>
+                </div>
+
+                <div class="speed-controls">
+                    <span class="speed-label">Speed:</span>
+                    <button id="speed-slow" class="speed-button" aria-label="Slow speed">
+                        🐌 Slow
+                    </button>
+                    <button id="speed-normal" class="speed-button active" aria-label="Normal speed">
+                        🚶 Normal
+                    </button>
+                    <button id="speed-fast" class="speed-button" aria-label="Fast speed">
+                        🏃 Fast
+                    </button>
+                </div>
+            </div>
+
+            <!-- Step Counter -->
+            <div class="step-counter-container">
+                <div id="stepCounter" class="step-counter" aria-live="polite">Step 0 of 0</div>
+            </div>
+
+            <!-- DP Table Visualization -->
+            <div class="dp-table-wrapper">
+                <div id="dpTableContainer" class="dp-table-container"></div>
+            </div>
+
+            <!-- Explanation Panel -->
+            <div class="explanation-panel">
+                <div class="explanation-title">💡 Explanation</div>
+                <div id="stepExplanation" class="explanation-content" aria-live="polite" aria-atomic="true">
+                    Click "Start Visualization" to see how the algorithm works!
+                </div>
+            </div>
+
+            <!-- Legend -->
+            <div class="visualization-legend">
+                <div class="legend-title">Legend:</div>
+                <div class="legend-items">
+                    <div class="legend-item">
+                        <span class="legend-box current-cell-box"></span>
+                        <span>Current cell being computed</span>
+                    </div>
+                    <div class="legend-item">
+                        <span class="legend-box next-cell-box"></span>
+                        <span>Next cell to visit (backtracking)</span>
+                    </div>
+                    <div class="legend-item">
+                        <span class="legend-box path-cell-box"></span>
+                        <span>Backtracking path</span>
+                    </div>
+                    <div class="legend-item">
+                        <span class="legend-box match-cell-box"></span>
+                        <span>Matched character (part of LCS)</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Algorithm Description -->
+            <div class="algorithm-description">
+                <h3>How the Algorithm Works</h3>
+
+                <div class="algorithm-section">
+                    <h4>📊 Table Filling Phase</h4>
+                    <p>
+                        The algorithm builds a 2D table where each cell [i,j] represents the length of the
+                        longest common subsequence between the first i characters of String 1 and the first
+                        j characters of String 2.
+                    </p>
+                    <ul>
+                        <li><strong>If characters match:</strong> LCS[i,j] = LCS[i-1,j-1] + 1</li>
+                        <li><strong>If characters don't match:</strong> LCS[i,j] = max(LCS[i-1,j], LCS[i,j-1])</li>
+                    </ul>
+                    <p>
+                        The bottom-right cell contains the length of the LCS.
+                    </p>
+                </div>
+
+                <div class="algorithm-section">
+                    <h4>🔙 Backtracking Phase</h4>
+                    <p>
+                        Once the table is filled, we trace back from the bottom-right corner to find the
+                        actual subsequence:
+                    </p>
+                    <ul>
+                        <li><strong>If characters match:</strong> Include this character in the LCS and move diagonally (↖)</li>
+                        <li><strong>If value came from above:</strong> Move up (↑)</li>
+                        <li><strong>If value came from left:</strong> Move left (←)</li>
+                    </ul>
+                    <p>
+                        The characters collected during diagonal moves form the LCS.
+                    </p>
+                </div>
+
+                <div class="algorithm-section">
+                    <h4>⚡ Complexity</h4>
+                    <ul>
+                        <li><strong>Time:</strong> O(m × n) where m and n are the lengths of the two strings</li>
+                        <li><strong>Space:</strong> O(m × n) for the DP table</li>
+                    </ul>
+                </div>
+
+                <div class="algorithm-section">
+                    <h4>💡 Example</h4>
+                    <p>
+                        For strings "ABCD" and "ACBD":
+                    </p>
+                    <ul>
+                        <li>The DP table fills left-to-right, top-to-bottom</li>
+                        <li>Characters 'A', 'B', 'D' match in order → LCS = "ABD" (length 3)</li>
+                        <li>The backtracking path shows which cells contributed to the LCS</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <footer class="attribution">
+            <div class="footer-links">
+                <a href="https://github.com/zzawadz/string-lcs-app" target="_blank" rel="noopener noreferrer">View Source Code</a>
+                <span class="footer-separator">•</span>
+                <a href="https://github.com/zzawadz/string-lcs-app/issues" target="_blank" rel="noopener noreferrer">Report Issues</a>
+            </div>
+            Created by Zygmunt Zawadzki using <a href="https://claude.ai" target="_blank" rel="noopener noreferrer">Claude Code</a>
+        </footer>
+    </div>
+
+    <script src="visualization.js"></script>
+</body>
+</html>
