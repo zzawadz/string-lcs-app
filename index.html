@@ -97,6 +97,28 @@
                 <button id="qrButton" class="accessibility-button qr-button" aria-label="Generate QR code for mobile sharing" title="Generate QR code to open on mobile">
                     <span aria-hidden="true">📱</span> QR Code
                 </button>
+                <div class="export-container">
+                    <button id="exportButton" class="accessibility-button export-button" aria-label="Export results to various formats" title="Export results to file">
+                        <span aria-hidden="true">💾</span> Export
+                    </button>
+                    <div id="exportDropdown" class="export-dropdown" role="menu" aria-label="Export format options">
+                        <button id="exportText" class="export-option" role="menuitem" aria-label="Export as Plain Text">
+                            <span aria-hidden="true">📄</span> Plain Text (.txt)
+                        </button>
+                        <button id="exportJson" class="export-option" role="menuitem" aria-label="Export as JSON">
+                            <span aria-hidden="true">{ }</span> JSON (.json)
+                        </button>
+                        <button id="exportCsv" class="export-option" role="menuitem" aria-label="Export as CSV">
+                            <span aria-hidden="true">📊</span> CSV (.csv)
+                        </button>
+                        <button id="exportHtml" class="export-option" role="menuitem" aria-label="Export as HTML">
+                            <span aria-hidden="true">🌐</span> HTML (.html)
+                        </button>
+                        <button id="exportMd" class="export-option" role="menuitem" aria-label="Export as Markdown">
+                            <span aria-hidden="true">#</span> Markdown (.md)
+                        </button>
+                    </div>
+                </div>
             </div>
 
             <div class="lcs-display">

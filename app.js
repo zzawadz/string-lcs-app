@@ -741,6 +741,451 @@ function generateQRCode() {
     announceToScreenReader('QR code displayed');
 }
 
+// Export Functions
+
+// Helper function to get current result data
+function getCurrentResultData() {
+    // Get current input strings
+    const string1 = lastComputedString1;
+    const string2 = lastComputedString2;
+
+    // Check if results exist
+    if (!string1 || !string2) {
+        return null;
+    }
+
+    // Get the result elements
+    const lcsResultElement = document.getElementById('lcsResult');
+    const alignedString1Element = document.getElementById('alignedString1');
+    const alignedString2Element = document.getElementById('alignedString2');
+
+    if (!lcsResultElement || !alignedString1Element || !alignedString2Element) {
+        return null;
+    }
+
+    // Get result text and aligned strings
+    const resultString = lcsResultElement.textContent;
+    const alignedString1 = alignedString1Element.textContent;
+    const alignedString2 = alignedString2Element.textContent;
+
+    // Reconstruct the codes array from the alignment
+    const codes = [];
+    for (let i = 0; i < alignedString1.length; i++) {
+        const char1 = alignedString1[i];
+        const char2 = alignedString2[i];
+
+        if (char1 === char2 && char1 !== '-') {
+            codes.push(3); // Match
+        } else if (char1 !== '-' && char2 === '-') {
+            codes.push(1); // Gap in string 2
+        } else if (char1 === '-' && char2 !== '-') {
+            codes.push(2); // Gap in string 1
+        } else {
+            codes.push(0); // Mismatch
+        }
+    }
+
+    return {
+        string1,
+        string2,
+        result: resultString,
+        alignedString1,
+        alignedString2,
+        codes,
+        mode: comparisonMode,
+        timestamp: new Date().toISOString()
+    };
+}
+
+// Export to Plain Text (.txt)
+function exportToText() {
+    const data = getCurrentResultData();
+    if (!data) {
+        showError('⚠️ Please compute a comparison before exporting.');
+        return;
+    }
+
+    let content = '';
+    content += '═══════════════════════════════════════════════════════\n';
+    content += `  ${comparisonMode === 'lcs' ? 'LONGEST COMMON SUBSEQUENCE' : 'STRING COMPARISON'} RESULTS\n`;
+    content += '═══════════════════════════════════════════════════════\n\n';
+    content += `Generated: ${new Date().toLocaleString()}\n\n`;
+    content += '-----------------------------------------------------------\n';
+    content += 'INPUT STRINGS\n';
+    content += '-----------------------------------------------------------\n\n';
+    content += `String 1 (${data.string1.length} characters):\n${data.string1}\n\n`;
+    content += `String 2 (${data.string2.length} characters):\n${data.string2}\n\n`;
+    content += '-----------------------------------------------------------\n';
+    content += comparisonMode === 'lcs' ? 'LCS RESULT\n' : 'COMPARISON RESULT\n';
+    content += '-----------------------------------------------------------\n\n';
+    content += `${comparisonMode === 'lcs' ? 'LCS' : 'Result'}: ${data.result || '(empty)'}\n`;
+    content += `Length: ${data.result.length}\n\n`;
+    content += '-----------------------------------------------------------\n';
+    content += 'ALIGNMENT\n';
+    content += '-----------------------------------------------------------\n\n';
+    content += `String 1 (aligned): ${data.alignedString1}\n`;
+    content += `String 2 (aligned): ${data.alignedString2}\n\n`;
+    content += 'Legend:\n';
+    content += '  - Match (same character in both):         highlighted\n';
+    content += '  - Only in String 1 (gap in String 2):     highlighted in String 1\n';
+    content += '  - Only in String 2 (gap in String 1):     highlighted in String 2\n';
+    content += '  - Mismatch (different at same position):  no highlighting\n\n';
+    content += '═══════════════════════════════════════════════════════\n';
+
+    downloadFile(content, 'lcs-result.txt', 'text/plain');
+}
+
+// Export to JSON (.json)
+function exportToJSON() {
+    const data = getCurrentResultData();
+    if (!data) {
+        showError('⚠️ Please compute a comparison before exporting.');
+        return;
+    }
+
+    const jsonData = {
+        metadata: {
+            exportedAt: new Date().toISOString(),
+            comparisonMode: data.mode,
+            version: '1.0'
+        },
+        inputs: {
+            string1: data.string1,
+            string2: data.string2,
+            string1Length: data.string1.length,
+            string2Length: data.string2.length
+        },
+        results: {
+            lcs: data.result,
+            lcsLength: data.result.length,
+            alignedString1: data.alignedString1,
+            alignedString2: data.alignedString2,
+            alignmentCodes: data.codes,
+            alignmentLength: data.codes.length
+        },
+        statistics: {
+            matches: data.codes.filter(c => c === 3).length,
+            mismatches: data.codes.filter(c => c === 0).length,
+            gapsInString1: data.codes.filter(c => c === 2).length,
+            gapsInString2: data.codes.filter(c => c === 1).length
+        },
+        legend: {
+            alignmentCodes: {
+                0: 'Mismatch (different characters at same position)',
+                1: 'Gap in String 2 (character only in String 1)',
+                2: 'Gap in String 1 (character only in String 2)',
+                3: 'Match (same character in both)'
+            }
+        }
+    };
+
+    const content = JSON.stringify(jsonData, null, 2);
+    downloadFile(content, 'lcs-result.json', 'application/json');
+}
+
+// Export to CSV (.csv)
+function exportToCSV() {
+    const data = getCurrentResultData();
+    if (!data) {
+        showError('⚠️ Please compute a comparison before exporting.');
+        return;
+    }
+
+    let content = '';
+
+    // Header
+    content += 'Position,String 1 Char,String 2 Char,Alignment Code,Alignment Type,Is Match\n';
+
+    // Data rows
+    for (let i = 0; i < data.alignedString1.length; i++) {
+        const char1 = data.alignedString1[i];
+        const char2 = data.alignedString2[i];
+        const code = data.codes[i];
+
+        let alignmentType = '';
+        switch (code) {
+            case 0: alignmentType = 'Mismatch'; break;
+            case 1: alignmentType = 'Gap in String 2'; break;
+            case 2: alignmentType = 'Gap in String 1'; break;
+            case 3: alignmentType = 'Match'; break;
+        }
+
+        const isMatch = code === 3 ? 'Yes' : 'No';
+
+        // Escape quotes in CSV
+        const escapedChar1 = char1.replace(/"/g, '""');
+        const escapedChar2 = char2.replace(/"/g, '""');
+
+        content += `${i + 1},"${escapedChar1}","${escapedChar2}",${code},"${alignmentType}",${isMatch}\n`;
+    }
+
+    downloadFile(content, 'lcs-result.csv', 'text/csv');
+}
+
+// Export to HTML (.html)
+function exportToHTML() {
+    const data = getCurrentResultData();
+    if (!data) {
+        showError('⚠️ Please compute a comparison before exporting.');
+        return;
+    }
+
+    // Recompute formatted alignment for HTML
+    const result = longestCommonSubseq(data.string1, data.string2);
+    const formattedAlignment1 = formatAlignment(result.first, result.codes);
+    const formattedAlignment2 = formatAlignment(result.second, result.codes);
+
+    const content = `<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>${comparisonMode === 'lcs' ? 'LCS' : 'String Comparison'} Results - ${new Date().toLocaleDateString()}</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            line-height: 1.6;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            border-radius: 8px;
+            padding: 30px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #2c3e50;
+            border-bottom: 3px solid #3498db;
+            padding-bottom: 10px;
+        }
+        h2 {
+            color: #34495e;
+            margin-top: 30px;
+        }
+        .metadata {
+            background: #ecf0f1;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+        .input-section {
+            background: #f9f9f9;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 10px 0;
+        }
+        .result-box {
+            background: #e8f5e9;
+            padding: 15px;
+            border-radius: 5px;
+            font-family: 'Courier New', monospace;
+            font-size: 16px;
+            margin: 10px 0;
+            word-break: break-all;
+        }
+        .alignment-box {
+            background: #fff3e0;
+            padding: 15px;
+            border-radius: 5px;
+            font-family: 'Courier New', monospace;
+            font-size: 16px;
+            margin: 10px 0;
+            word-break: break-all;
+        }
+        .legend {
+            margin-top: 20px;
+            padding: 15px;
+            background: #f5f5f5;
+            border-radius: 5px;
+        }
+        .legend-item {
+            margin: 8px 0;
+        }
+        .align-match { background-color: #c8e6c9; font-weight: bold; }
+        .align-mismatch { background-color: #ffccbc; }
+        .align-gap-string1 { background-color: #b3e5fc; }
+        .align-gap-string2 { background-color: #ffe0b2; }
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+        .stat-card {
+            background: #3498db;
+            color: white;
+            padding: 15px;
+            border-radius: 5px;
+            text-align: center;
+        }
+        .stat-value {
+            font-size: 24px;
+            font-weight: bold;
+        }
+        .stat-label {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>${comparisonMode === 'lcs' ? 'Longest Common Subsequence Results' : 'String Comparison Results'}</h1>
+
+        <div class="metadata">
+            <strong>Generated:</strong> ${new Date().toLocaleString()}<br>
+            <strong>Comparison Mode:</strong> ${comparisonMode === 'lcs' ? 'Longest Common Subsequence (LCS)' : 'Character-by-Character Comparison'}
+        </div>
+
+        <h2>Input Strings</h2>
+        <div class="input-section">
+            <strong>String 1</strong> (${data.string1.length} characters)<br>
+            <div style="margin-top: 10px; font-family: 'Courier New', monospace;">${escapeHtml(data.string1)}</div>
+        </div>
+        <div class="input-section">
+            <strong>String 2</strong> (${data.string2.length} characters)<br>
+            <div style="margin-top: 10px; font-family: 'Courier New', monospace;">${escapeHtml(data.string2)}</div>
+        </div>
+
+        <h2>${comparisonMode === 'lcs' ? 'LCS Result' : 'Comparison Result'}</h2>
+        <div class="result-box">
+            <strong>${comparisonMode === 'lcs' ? 'LCS:' : 'Result:'}</strong> ${escapeHtml(data.result) || '(empty)'}<br>
+            <strong>Length:</strong> ${data.result.length}
+        </div>
+
+        <h2>Statistics</h2>
+        <div class="stats">
+            <div class="stat-card">
+                <div class="stat-value">${data.codes.filter(c => c === 3).length}</div>
+                <div class="stat-label">Matches</div>
+            </div>
+            <div class="stat-card" style="background: #e74c3c;">
+                <div class="stat-value">${data.codes.filter(c => c === 0).length}</div>
+                <div class="stat-label">Mismatches</div>
+            </div>
+            <div class="stat-card" style="background: #f39c12;">
+                <div class="stat-value">${data.codes.filter(c => c === 1).length}</div>
+                <div class="stat-label">Gaps in String 2</div>
+            </div>
+            <div class="stat-card" style="background: #9b59b6;">
+                <div class="stat-value">${data.codes.filter(c => c === 2).length}</div>
+                <div class="stat-label">Gaps in String 1</div>
+            </div>
+        </div>
+
+        <h2>Alignment</h2>
+        <div class="alignment-box">
+            <strong>String 1 (aligned):</strong><br>
+            ${formattedAlignment1}<br><br>
+            <strong>String 2 (aligned):</strong><br>
+            ${formattedAlignment2}
+        </div>
+
+        <div class="legend">
+            <strong>Legend:</strong>
+            <div class="legend-item"><span class="align-match" style="padding: 2px 5px;">text</span> Match (same character in both)</div>
+            <div class="legend-item"><span class="align-gap-string2" style="padding: 2px 5px;">text</span> Only in String 1 (gap in String 2)</div>
+            <div class="legend-item"><span class="align-gap-string1" style="padding: 2px 5px;">text</span> Only in String 2 (gap in String 1)</div>
+            <div class="legend-item"><span class="align-mismatch" style="padding: 2px 5px;">text</span> Mismatch (different characters at same position)</div>
+        </div>
+    </div>
+</body>
+</html>`;
+
+    downloadFile(content, 'lcs-result.html', 'text/html');
+}
+
+// Export to Markdown (.md)
+function exportToMarkdown() {
+    const data = getCurrentResultData();
+    if (!data) {
+        showError('⚠️ Please compute a comparison before exporting.');
+        return;
+    }
+
+    const modeTitle = comparisonMode === 'lcs' ? 'Longest Common Subsequence' : 'String Comparison';
+
+    let content = `# ${modeTitle} Results\n\n`;
+    content += `**Generated:** ${new Date().toLocaleString()}  \n`;
+    content += `**Comparison Mode:** ${comparisonMode === 'lcs' ? 'LCS' : 'Character-by-Character'}\n\n`;
+    content += `---\n\n`;
+    content += `## Input Strings\n\n`;
+    content += `### String 1 (${data.string1.length} characters)\n\n`;
+    content += '```\n' + data.string1 + '\n```\n\n';
+    content += `### String 2 (${data.string2.length} characters)\n\n`;
+    content += '```\n' + data.string2 + '\n```\n\n';
+    content += `---\n\n`;
+    content += `## ${comparisonMode === 'lcs' ? 'LCS Result' : 'Comparison Result'}\n\n`;
+    content += `- **${comparisonMode === 'lcs' ? 'LCS' : 'Result'}:** \`${data.result || '(empty)'}\`\n`;
+    content += `- **Length:** ${data.result.length}\n\n`;
+    content += `---\n\n`;
+    content += `## Statistics\n\n`;
+    content += `| Metric | Count |\n`;
+    content += `|--------|-------|\n`;
+    content += `| Matches | ${data.codes.filter(c => c === 3).length} |\n`;
+    content += `| Mismatches | ${data.codes.filter(c => c === 0).length} |\n`;
+    content += `| Gaps in String 2 | ${data.codes.filter(c => c === 1).length} |\n`;
+    content += `| Gaps in String 1 | ${data.codes.filter(c => c === 2).length} |\n\n`;
+    content += `---\n\n`;
+    content += `## Alignment\n\n`;
+    content += `**String 1 (aligned):**\n`;
+    content += '```\n' + data.alignedString1 + '\n```\n\n';
+    content += `**String 2 (aligned):**\n`;
+    content += '```\n' + data.alignedString2 + '\n```\n\n';
+    content += `### Legend\n\n`;
+    content += `- **Match:** Same character in both strings (highlighted)\n`;
+    content += `- **Only in String 1:** Character only in String 1 (gap in String 2)\n`;
+    content += `- **Only in String 2:** Character only in String 2 (gap in String 1)\n`;
+    content += `- **Mismatch:** Different characters at same position\n\n`;
+    content += `---\n\n`;
+    content += `*Generated by Longest Common Subsequence Finder*\n`;
+
+    downloadFile(content, 'lcs-result.md', 'text/markdown');
+}
+
+// Helper function to download a file
+function downloadFile(content, filename, mimeType) {
+    try {
+        const blob = new Blob([content], { type: mimeType });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+
+        announceToScreenReader(`File ${filename} downloaded successfully`);
+    } catch (error) {
+        showError('❌ Failed to export file. Please try again.');
+        console.error('Export error:', error);
+    }
+}
+
+// Show/hide export dropdown menu
+function toggleExportMenu() {
+    const dropdown = document.getElementById('exportDropdown');
+    dropdown.classList.toggle('show');
+
+    // Close dropdown when clicking outside
+    if (dropdown.classList.contains('show')) {
+        const closeDropdown = (e) => {
+            if (!e.target.closest('.export-container')) {
+                dropdown.classList.remove('show');
+                document.removeEventListener('click', closeDropdown);
+            }
+        };
+        // Add slight delay to prevent immediate closing
+        setTimeout(() => {
+            document.addEventListener('click', closeDropdown);
+        }, 10);
+    }
+}
+
 
 // Initialize event listeners when DOM is loaded
 document.addEventListener('DOMContentLoaded', function() {
@@ -807,4 +1252,23 @@ document.addEventListener('DOMContentLoaded', function() {
     if (qrButton) {
         qrButton.addEventListener('click', generateQRCode);
     }
+
+    // Export button event listener
+    const exportButton = document.getElementById('exportButton');
+    if (exportButton) {
+        exportButton.addEventListener('click', toggleExportMenu);
+    }
+
+    // Export format button event listeners
+    const exportTextBtn = document.getElementById('exportText');
+    const exportJsonBtn = document.getElementById('exportJson');
+    const exportCsvBtn = document.getElementById('exportCsv');
+    const exportHtmlBtn = document.getElementById('exportHtml');
+    const exportMdBtn = document.getElementById('exportMd');
+
+    if (exportTextBtn) exportTextBtn.addEventListener('click', exportToText);
+    if (exportJsonBtn) exportJsonBtn.addEventListener('click', exportToJSON);
+    if (exportCsvBtn) exportCsvBtn.addEventListener('click', exportToCSV);
+    if (exportHtmlBtn) exportHtmlBtn.addEventListener('click', exportToHTML);
+    if (exportMdBtn) exportMdBtn.addEventListener('click', exportToMarkdown);
 });

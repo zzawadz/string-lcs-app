@@ -935,16 +935,89 @@ body.high-contrast .qr-modal-footer p {
     background: linear-gradient(135deg, #8e44ad 0%, #7d3c98 100%) !important;
 }
 
+/* Export Button and Dropdown */
+.export-container {
+    position: relative;
+    display: inline-block;
+}
+
+.export-button {
+    background: linear-gradient(135deg, #e67e22 0%, #d35400 100%) !important;
+    color: white !important;
+    border: none !important;
+}
+
+.export-button:hover {
+    background: linear-gradient(135deg, #d35400 0%, #ba4a00 100%) !important;
+}
+
+.export-dropdown {
+    display: none;
+    position: absolute;
+    top: 100%;
+    right: 0;
+    background: white;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    z-index: 1000;
+    min-width: 200px;
+    margin-top: 5px;
+}
+
+.export-dropdown.show {
+    display: block;
+}
+
+.export-option {
+    display: block;
+    width: 100%;
+    padding: 12px 16px;
+    text-align: left;
+    background: white;
+    border: none;
+    border-bottom: 1px solid #eee;
+    cursor: pointer;
+    font-size: 14px;
+    color: #2c3e50;
+    transition: background-color 0.2s;
+}
+
+.export-option:first-child {
+    border-radius: 5px 5px 0 0;
+}
+
+.export-option:last-child {
+    border-radius: 0 0 5px 5px;
+    border-bottom: none;
+}
+
+.export-option:hover {
+    background-color: #f8f9fa;
+}
+
+.export-option:active {
+    background-color: #e9ecef;
+}
+
+.export-option span[aria-hidden="true"] {
+    display: inline-block;
+    width: 24px;
+    margin-right: 8px;
+}
+
 /* High Contrast Mode for Share Buttons */
 body.high-contrast .share-button,
-body.high-contrast .qr-button {
+body.high-contrast .qr-button,
+body.high-contrast .export-button {
     background: #000 !important;
     color: #fff !important;
     border: 2px solid #fff !important;
 }
 
 body.high-contrast .share-button:hover,
-body.high-contrast .qr-button:hover {
+body.high-contrast .qr-button:hover,
+body.high-contrast .export-button:hover {
     background: #fff !important;
     color: #000 !important;
 }
@@ -953,6 +1026,27 @@ body.high-contrast .share-button.copied {
     background: #0f0 !important;
     color: #000 !important;
     border-color: #fff !important;
+}
+
+body.high-contrast .export-dropdown {
+    background: #000 !important;
+    border: 2px solid #fff !important;
+}
+
+body.high-contrast .export-option {
+    background: #000 !important;
+    color: #fff !important;
+    border-bottom: 1px solid #fff !important;
+}
+
+body.high-contrast .export-option:hover {
+    background: #fff !important;
+    color: #000 !important;
+}
+
+body.high-contrast .export-option:active {
+    background: #ccc !important;
+    color: #000 !important;
 }
 
 /* High Contrast Mode for Visualization Button */
