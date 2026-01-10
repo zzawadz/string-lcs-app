@@ -912,23 +912,47 @@ body.high-contrast .qr-modal-footer p {
 
 /* Share Button Styles */
 .share-button {
-    background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
+    background: linear-gradient(135deg, #3498db 0%, #2980b9 100%) !important;
+    color: white !important;
+    border: none !important;
 }
 
 .share-button:hover {
-    background: linear-gradient(135deg, #2980b9 0%, #21618c 100%);
+    background: linear-gradient(135deg, #2980b9 0%, #21618c 100%) !important;
 }
 
 .share-button.copied {
-    background: linear-gradient(135deg, #2ecc71 0%, #27ae60 100%);
+    background: linear-gradient(135deg, #2ecc71 0%, #27ae60 100%) !important;
 }
 
 .qr-button {
-    background: linear-gradient(135deg, #9b59b6 0%, #8e44ad 100%);
+    background: linear-gradient(135deg, #9b59b6 0%, #8e44ad 100%) !important;
+    color: white !important;
+    border: none !important;
 }
 
 .qr-button:hover {
-    background: linear-gradient(135deg, #8e44ad 0%, #7d3c98 100%);
+    background: linear-gradient(135deg, #8e44ad 0%, #7d3c98 100%) !important;
+}
+
+/* High Contrast Mode for Share Buttons */
+body.high-contrast .share-button,
+body.high-contrast .qr-button {
+    background: #000 !important;
+    color: #fff !important;
+    border: 2px solid #fff !important;
+}
+
+body.high-contrast .share-button:hover,
+body.high-contrast .qr-button:hover {
+    background: #fff !important;
+    color: #000 !important;
+}
+
+body.high-contrast .share-button.copied {
+    background: #0f0 !important;
+    color: #000 !important;
+    border-color: #fff !important;
 }
 
 /* Responsive adjustments for share buttons */
