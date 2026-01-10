@@ -955,6 +955,18 @@ body.high-contrast .share-button.copied {
     border-color: #fff !important;
 }
 
+/* High Contrast Mode for Visualization Button */
+body.high-contrast .visualization-button {
+    background: #000 !important;
+    color: #fff !important;
+    border: 2px solid #fff !important;
+}
+
+body.high-contrast .visualization-button:hover {
+    background: #fff !important;
+    color: #000 !important;
+}
+
 /* Responsive adjustments for share buttons */
 .result-view-controls {
     display: flex;
