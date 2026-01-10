@@ -949,6 +949,18 @@ body.high-contrast .footer-separator {
     color: #666;
 }
 
+/* High Contrast Mode for Action Button */
+body.high-contrast .action-button {
+    background: #000 !important;
+    color: #fff !important;
+    border: 2px solid #fff !important;
+}
+
+body.high-contrast .action-button:hover {
+    background: #fff !important;
+    color: #000 !important;
+}
+
 @media (max-width: 768px) {
     .input-section {
         grid-template-columns: 1fr;
