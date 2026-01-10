@@ -558,6 +558,189 @@ function hideStaleIndicator() {
     staleIndicator.classList.remove('show');
 }
 
+// URL Sharing Functions
+
+// Generate shareable URL with encoded inputs and settings
+function generateShareableURL() {
+    const string1 = document.getElementById('string1').value;
+    const string2 = document.getElementById('string2').value;
+
+    // Only generate URL if we have at least one string
+    if (!string1 && !string2) {
+        return null;
+    }
+
+    try {
+        const params = new URLSearchParams();
+
+        // Encode strings using base64 to handle special characters
+        if (string1) {
+            params.set('s1', btoa(encodeURIComponent(string1)));
+        }
+        if (string2) {
+            params.set('s2', btoa(encodeURIComponent(string2)));
+        }
+
+        // Include comparison mode
+        params.set('mode', comparisonMode);
+
+        // Include view mode
+        params.set('view', currentViewMode);
+
+        // Generate full URL
+        const baseUrl = window.location.origin + window.location.pathname;
+        return `${baseUrl}?${params.toString()}`;
+    } catch (error) {
+        console.error('Error generating shareable URL:', error);
+        return null;
+    }
+}
+
+// Load state from URL parameters
+function loadFromURLParams() {
+    try {
+        const params = new URLSearchParams(window.location.search);
+
+        // Load strings if present
+        if (params.has('s1')) {
+            const string1 = decodeURIComponent(atob(params.get('s1')));
+            document.getElementById('string1').value = string1;
+            updateCharCount('string1', 'charCount1', 'warning1');
+        }
+
+        if (params.has('s2')) {
+            const string2 = decodeURIComponent(atob(params.get('s2')));
+            document.getElementById('string2').value = string2;
+            updateCharCount('string2', 'charCount2', 'warning2');
+        }
+
+        // Load comparison mode if present
+        if (params.has('mode')) {
+            const mode = params.get('mode');
+            if (mode === 'lcs' || mode === 'char-compare') {
+                setComparisonMode(mode);
+            }
+        }
+
+        // Load view mode if present
+        if (params.has('view')) {
+            const viewMode = params.get('view');
+            if (viewMode === 'side-by-side' && currentViewMode === 'alignment') {
+                // Toggle to side-by-side if that's what's in the URL
+                toggleViewMode();
+            }
+        }
+
+        // Auto-compute if we loaded strings from URL
+        if (params.has('s1') && params.has('s2')) {
+            // Use setTimeout to ensure DOM is fully ready
+            setTimeout(() => {
+                computeLCS();
+            }, 100);
+        }
+    } catch (error) {
+        console.error('Error loading from URL parameters:', error);
+        showError('⚠️ Failed to load from URL. The shared link may be invalid or corrupted.');
+    }
+}
+
+// Share URL - copy to clipboard
+function shareURL() {
+    const shareUrl = generateShareableURL();
+
+    if (!shareUrl) {
+        showError('⚠️ Please enter at least one string before sharing.');
+        return;
+    }
+
+    const shareButton = document.getElementById('shareButton');
+
+    navigator.clipboard.writeText(shareUrl).then(() => {
+        const originalText = shareButton.innerHTML;
+        shareButton.innerHTML = '<span aria-hidden="true">✓</span> URL Copied!';
+        shareButton.classList.add('copied');
+
+        announceToScreenReader('Shareable URL copied to clipboard');
+
+        setTimeout(() => {
+            shareButton.innerHTML = originalText;
+            shareButton.classList.remove('copied');
+        }, 2000);
+    }).catch(err => {
+        showError('❌ Failed to copy URL to clipboard. Please try again.');
+        console.error('Share failed:', err);
+    });
+}
+
+// Generate QR code for the shareable URL
+function generateQRCode() {
+    const shareUrl = generateShareableURL();
+
+    if (!shareUrl) {
+        showError('⚠️ Please enter at least one string before generating a QR code.');
+        return;
+    }
+
+    // Use a QR code API service to generate the QR code
+    // Using goqr.me API which is free and doesn't require authentication
+    const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(shareUrl)}`;
+
+    // Create modal to display QR code
+    const modal = document.createElement('div');
+    modal.className = 'qr-modal';
+    modal.setAttribute('role', 'dialog');
+    modal.setAttribute('aria-label', 'QR Code for sharing');
+    modal.setAttribute('aria-modal', 'true');
+
+    modal.innerHTML = `
+        <div class="qr-modal-content">
+            <div class="qr-modal-header">
+                <h2>Scan to Open on Mobile</h2>
+                <button class="qr-close-button" aria-label="Close QR code modal">×</button>
+            </div>
+            <div class="qr-code-container">
+                <img src="${qrCodeUrl}" alt="QR code for sharing this comparison" />
+            </div>
+            <div class="qr-modal-footer">
+                <p>Scan this QR code with your mobile device to open this comparison</p>
+                <button class="copy-button" id="copyUrlFromQR">
+                    <span aria-hidden="true">📋</span> Copy URL
+                </button>
+            </div>
+        </div>
+    `;
+
+    document.body.appendChild(modal);
+
+    // Close modal when clicking the close button or outside the modal
+    const closeButton = modal.querySelector('.qr-close-button');
+    const copyButton = modal.querySelector('#copyUrlFromQR');
+
+    closeButton.addEventListener('click', () => {
+        document.body.removeChild(modal);
+    });
+
+    modal.addEventListener('click', (e) => {
+        if (e.target === modal) {
+            document.body.removeChild(modal);
+        }
+    });
+
+    copyButton.addEventListener('click', () => {
+        navigator.clipboard.writeText(shareUrl).then(() => {
+            copyButton.innerHTML = '<span aria-hidden="true">✓</span> Copied!';
+            setTimeout(() => {
+                copyButton.innerHTML = '<span aria-hidden="true">📋</span> Copy URL';
+            }, 2000);
+        });
+    });
+
+    // Focus the close button for accessibility
+    setTimeout(() => closeButton.focus(), 100);
+
+    announceToScreenReader('QR code displayed');
+}
+
 
 // Initialize event listeners when DOM is loaded
 document.addEventListener('DOMContentLoaded', function() {
@@ -608,5 +791,20 @@ document.addEventListener('DOMContentLoaded', function() {
     const savedHighContrast = localStorage.getItem('highContrastMode') === 'true';
     if (savedHighContrast) {
         document.body.classList.add('high-contrast');
+    }
+
+    // Load state from URL parameters if present
+    loadFromURLParams();
+
+    // Share button event listener
+    const shareButton = document.getElementById('shareButton');
+    if (shareButton) {
+        shareButton.addEventListener('click', shareURL);
+    }
+
+    // QR code button event listener
+    const qrButton = document.getElementById('qrButton');
+    if (qrButton) {
+        qrButton.addEventListener('click', generateQRCode);
     }
 });
