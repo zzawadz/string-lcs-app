@@ -935,6 +935,26 @@ body.high-contrast .qr-modal-footer p {
     background: linear-gradient(135deg, #8e44ad 0%, #7d3c98 100%) !important;
 }
 
+/* High Contrast Mode for Share Buttons */
+body.high-contrast .share-button,
+body.high-contrast .qr-button {
+    background: #000 !important;
+    color: #fff !important;
+    border: 2px solid #fff !important;
+}
+
+body.high-contrast .share-button:hover,
+body.high-contrast .qr-button:hover {
+    background: #fff !important;
+    color: #000 !important;
+}
+
+body.high-contrast .share-button.copied {
+    background: #0f0 !important;
+    color: #000 !important;
+    border-color: #fff !important;
+}
+
 /* Responsive adjustments for share buttons */
 .result-view-controls {
     display: flex;
