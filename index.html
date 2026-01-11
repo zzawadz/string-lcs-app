@@ -35,6 +35,62 @@
             </select>
         </div>
 
+        <!-- Text Processing Options -->
+        <div class="processing-options-section">
+            <div class="processing-options-header">
+                <span class="processing-options-title">Text Processing Options:</span>
+                <button id="toggleProcessingOptions" class="toggle-options-button" aria-expanded="false" aria-controls="processingOptionsContent">
+                    <span aria-hidden="true">▼</span> Show Options
+                </button>
+            </div>
+            <div id="processingOptionsContent" class="processing-options-content" style="display: none;">
+                <div class="processing-options-grid">
+                    <div class="processing-option">
+                        <label>
+                            <input type="checkbox" id="optionIgnoreCase" aria-label="Ignore case differences">
+                            <span class="option-label">Ignore Case</span>
+                            <span class="option-description">Convert to lowercase</span>
+                        </label>
+                    </div>
+                    <div class="processing-option">
+                        <label>
+                            <input type="checkbox" id="optionIgnoreWhitespace" aria-label="Ignore whitespace differences">
+                            <span class="option-label">Ignore Whitespace</span>
+                            <span class="option-description">Trim and normalize spaces</span>
+                        </label>
+                    </div>
+                    <div class="processing-option">
+                        <label>
+                            <input type="checkbox" id="optionIgnorePunctuation" aria-label="Ignore punctuation">
+                            <span class="option-label">Ignore Punctuation</span>
+                            <span class="option-description">Remove punctuation marks</span>
+                        </label>
+                    </div>
+                    <div class="processing-option">
+                        <label>
+                            <input type="checkbox" id="optionIgnoreNumbers" aria-label="Ignore numbers">
+                            <span class="option-label">Ignore Numbers</span>
+                            <span class="option-description">Remove numeric characters</span>
+                        </label>
+                    </div>
+                    <div class="processing-option">
+                        <label>
+                            <input type="checkbox" id="optionRemoveDuplicateSpaces" aria-label="Remove duplicate spaces">
+                            <span class="option-label">Remove Duplicate Spaces</span>
+                            <span class="option-description">Replace multiple spaces with single space</span>
+                        </label>
+                    </div>
+                    <div class="processing-option">
+                        <label>
+                            <input type="checkbox" id="optionLineByLine" aria-label="Line-by-line comparison mode">
+                            <span class="option-label">Line-by-Line Mode</span>
+                            <span class="option-description">Treat each line as a character</span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <!-- Error Message Container -->
         <div id="errorMessage" class="error-message" role="alert" aria-live="assertive" aria-atomic="true"></div>
 

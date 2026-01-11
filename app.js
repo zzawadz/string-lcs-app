@@ -338,8 +338,15 @@ function computeLCS() {
         return;
     }
 
+    // Get preprocessing options
+    const processingOptions = getProcessingOptions();
+
+    // Apply preprocessing
+    const processedString1 = preprocessString(string1, processingOptions);
+    const processedString2 = preprocessString(string2, processingOptions);
+
     // Show estimated time if needed
-    const timeEstimate = comparisonMode === 'lcs' ? estimateTime(string1.length, string2.length) : '';
+    const timeEstimate = comparisonMode === 'lcs' ? estimateTime(processedString1.length, processedString2.length) : '';
     if (timeEstimate) {
         showLoading(timeEstimate);
     } else {
@@ -355,13 +362,18 @@ function computeLCS() {
             // Choose algorithm based on comparison mode
             if (comparisonMode === 'lcs') {
                 // Compute LCS
-                result = longestCommonSubseq(string1, string2);
+                result = longestCommonSubseq(processedString1, processedString2);
                 resultString = getLCSString(result.first, result.second);
             } else {
                 // Character-by-character comparison
-                result = characterByCharacterCompare(string1, string2);
+                result = characterByCharacterCompare(processedString1, processedString2);
                 resultString = getComparisonString(result.first, result.second);
             }
+
+            // Postprocess for display (e.g., line-by-line mode)
+            const displayFirst = postprocessAlignment(result.first, processingOptions);
+            const displaySecond = postprocessAlignment(result.second, processingOptions);
+            const displayResult = postprocessAlignment(resultString, processingOptions);
 
             // Update header based on mode
             const lcsHeader = document.querySelector('.lcs-header');
@@ -372,15 +384,18 @@ function computeLCS() {
             }
 
             // Display results - use textContent for plain text (XSS safe)
-            document.getElementById('lcsResult').textContent = resultString || '(empty)';
-            document.getElementById('lcsLength').textContent = `Length: ${resultString.length}`;
+            document.getElementById('lcsResult').textContent = displayResult || '(empty)';
+            const lengthText = processingOptions.lineByLine
+                ? `Length: ${resultString.split(LINE_SEPARATOR).filter(l => l).length} lines`
+                : `Length: ${resultString.length}`;
+            document.getElementById('lcsLength').textContent = lengthText;
 
             // Display alignment view (with HTML escaping in formatAlignment)
-            document.getElementById('alignedString1').innerHTML = formatAlignment(result.first, result.codes);
-            document.getElementById('alignedString2').innerHTML = formatAlignment(result.second, result.codes);
+            document.getElementById('alignedString1').innerHTML = formatAlignment(displayFirst, result.codes);
+            document.getElementById('alignedString2').innerHTML = formatAlignment(displaySecond, result.codes);
 
             // Display side-by-side view (with HTML escaping in formatSideBySide)
-            const sideBySide = formatSideBySide(result.first, result.second, result.codes);
+            const sideBySide = formatSideBySide(displayFirst, displaySecond, result.codes);
             document.getElementById('sideBySideString1').innerHTML = sideBySide.formatted1;
             document.getElementById('sideBySideString2').innerHTML = sideBySide.formatted2;
 
@@ -531,6 +546,113 @@ function loadPreset(presetName) {
 let lastComputedString1 = '';
 let lastComputedString2 = '';
 
+// Text Processing Options
+
+// Get current preprocessing options
+function getProcessingOptions() {
+    return {
+        ignoreCase: document.getElementById('optionIgnoreCase')?.checked || false,
+        ignoreWhitespace: document.getElementById('optionIgnoreWhitespace')?.checked || false,
+        ignorePunctuation: document.getElementById('optionIgnorePunctuation')?.checked || false,
+        ignoreNumbers: document.getElementById('optionIgnoreNumbers')?.checked || false,
+        removeDuplicateSpaces: document.getElementById('optionRemoveDuplicateSpaces')?.checked || false,
+        lineByLine: document.getElementById('optionLineByLine')?.checked || false
+    };
+}
+
+// Line separator for line-by-line mode
+const LINE_SEPARATOR = '\u2028'; // Unicode line separator (rarely used in normal text)
+
+// Preprocess string based on selected options
+function preprocessString(str, options) {
+    let processed = str;
+
+    // Line-by-line mode - treat each line as a "character"
+    if (options.lineByLine) {
+        // Split by newlines, process each line, join with special separator
+        let lines = processed.split(/\r?\n/);
+
+        // Apply other preprocessing to each line if needed
+        lines = lines.map(line => {
+            let processedLine = line;
+
+            if (options.ignoreCase) {
+                processedLine = processedLine.toLowerCase();
+            }
+
+            if (options.ignoreWhitespace) {
+                processedLine = processedLine.trim();
+            }
+
+            if (options.ignorePunctuation) {
+                processedLine = processedLine.replace(/[!"#$%&'()*+,\-./:;<=>?@[\\\]^_`{|}~]/g, '');
+            }
+
+            if (options.ignoreNumbers) {
+                processedLine = processedLine.replace(/\d/g, '');
+            }
+
+            if (options.removeDuplicateSpaces) {
+                processedLine = processedLine.replace(/\s+/g, ' ');
+            }
+
+            return processedLine;
+        });
+
+        // Join lines with special separator
+        processed = lines.join(LINE_SEPARATOR);
+        return processed;
+    }
+
+    // Regular character-by-character processing
+    if (options.ignoreCase) {
+        processed = processed.toLowerCase();
+    }
+
+    if (options.ignoreWhitespace) {
+        processed = processed.replace(/\s/g, '');
+    }
+
+    if (options.ignorePunctuation) {
+        processed = processed.replace(/[!"#$%&'()*+,\-./:;<=>?@[\\\]^_`{|}~]/g, '');
+    }
+
+    if (options.ignoreNumbers) {
+        processed = processed.replace(/\d/g, '');
+    }
+
+    if (options.removeDuplicateSpaces) {
+        processed = processed.replace(/\s+/g, ' ').trim();
+    }
+
+    return processed;
+}
+
+// Postprocess alignment results for display (convert line separators back to readable format)
+function postprocessAlignment(str, options) {
+    if (options.lineByLine) {
+        // Replace line separators with newline symbols for display
+        return str.split(LINE_SEPARATOR).join('↵\n');
+    }
+    return str;
+}
+
+// Toggle processing options visibility
+function toggleProcessingOptions() {
+    const content = document.getElementById('processingOptionsContent');
+    const button = document.getElementById('toggleProcessingOptions');
+
+    if (content.style.display === 'none') {
+        content.style.display = 'block';
+        button.innerHTML = '<span aria-hidden="true">▲</span> Hide Options';
+        button.setAttribute('aria-expanded', 'true');
+    } else {
+        content.style.display = 'none';
+        button.innerHTML = '<span aria-hidden="true">▼</span> Show Options';
+        button.setAttribute('aria-expanded', 'false');
+    }
+}
+
 // Check if results are stale
 function checkStaleResults() {
     const resultSection = document.getElementById('resultSection');
@@ -587,6 +709,15 @@ function generateShareableURL() {
         // Include view mode
         params.set('view', currentViewMode);
 
+        // Include preprocessing options
+        const processingOptions = getProcessingOptions();
+        if (processingOptions.ignoreCase) params.set('ignoreCase', '1');
+        if (processingOptions.ignoreWhitespace) params.set('ignoreWhitespace', '1');
+        if (processingOptions.ignorePunctuation) params.set('ignorePunctuation', '1');
+        if (processingOptions.ignoreNumbers) params.set('ignoreNumbers', '1');
+        if (processingOptions.removeDuplicateSpaces) params.set('removeDuplicateSpaces', '1');
+        if (processingOptions.lineByLine) params.set('lineByLine', '1');
+
         // Generate full URL
         const baseUrl = window.location.origin + window.location.pathname;
         return `${baseUrl}?${params.toString()}`;
@@ -628,6 +759,40 @@ function loadFromURLParams() {
             if (viewMode === 'side-by-side' && currentViewMode === 'alignment') {
                 // Toggle to side-by-side if that's what's in the URL
                 toggleViewMode();
+            }
+        }
+
+        // Load preprocessing options if present
+        const hasProcessingOptions = params.has('ignoreCase') || params.has('ignoreWhitespace') ||
+                                     params.has('ignorePunctuation') || params.has('ignoreNumbers') ||
+                                     params.has('removeDuplicateSpaces') || params.has('lineByLine');
+
+        if (hasProcessingOptions) {
+            // Show the processing options panel
+            const content = document.getElementById('processingOptionsContent');
+            const button = document.getElementById('toggleProcessingOptions');
+            if (content && button && content.style.display === 'none') {
+                toggleProcessingOptions();
+            }
+
+            // Set the checkboxes
+            if (params.has('ignoreCase')) {
+                document.getElementById('optionIgnoreCase').checked = true;
+            }
+            if (params.has('ignoreWhitespace')) {
+                document.getElementById('optionIgnoreWhitespace').checked = true;
+            }
+            if (params.has('ignorePunctuation')) {
+                document.getElementById('optionIgnorePunctuation').checked = true;
+            }
+            if (params.has('ignoreNumbers')) {
+                document.getElementById('optionIgnoreNumbers').checked = true;
+            }
+            if (params.has('removeDuplicateSpaces')) {
+                document.getElementById('optionRemoveDuplicateSpaces').checked = true;
+            }
+            if (params.has('lineByLine')) {
+                document.getElementById('optionLineByLine').checked = true;
             }
         }
 
@@ -1549,6 +1714,31 @@ document.addEventListener('DOMContentLoaded', function() {
     document.addEventListener('keydown', (e) => {
         if (e.key === 'Escape' && filePreviewModal.classList.contains('show')) {
             hideFilePreview();
+        }
+    });
+
+    // Text Processing Options event listeners
+    const toggleProcessingOptionsBtn = document.getElementById('toggleProcessingOptions');
+    if (toggleProcessingOptionsBtn) {
+        toggleProcessingOptionsBtn.addEventListener('click', toggleProcessingOptions);
+    }
+
+    // Add change event listeners to processing option checkboxes to mark results as stale
+    const processingOptionCheckboxes = [
+        'optionIgnoreCase',
+        'optionIgnoreWhitespace',
+        'optionIgnorePunctuation',
+        'optionIgnoreNumbers',
+        'optionRemoveDuplicateSpaces',
+        'optionLineByLine'
+    ];
+
+    processingOptionCheckboxes.forEach(id => {
+        const checkbox = document.getElementById(id);
+        if (checkbox) {
+            checkbox.addEventListener('change', () => {
+                checkStaleResults();
+            });
         }
     });
 });
