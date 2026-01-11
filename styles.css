@@ -564,6 +564,13 @@ button:active {
     padding: 0;
 }
 
+.align-substring {
+    background-color: #ffd700;
+    font-weight: bold;
+    padding: 0;
+    border-bottom: 2px solid #ff8c00;
+}
+
 /* Legacy classes for backwards compatibility */
 .match {
     color: #2ecc71;
@@ -762,6 +769,12 @@ body.high-contrast .align-gap-string1 {
 body.high-contrast .align-match {
     background-color: #00f;
     color: #fff;
+}
+
+body.high-contrast .align-substring {
+    background-color: #ff0;
+    color: #000;
+    border-bottom: 3px solid #000;
 }
 
 /* High contrast side-by-side styles */
