@@ -151,12 +151,21 @@
             </div>
         </div>
 
+        <!-- Algorithm Selector -->
+        <div class="algorithm-selector-section">
+            <label for="algorithmSelector">Select Algorithm:</label>
+            <select id="algorithmSelector" aria-label="Select string comparison algorithm">
+                <option value="lcs">Longest Common Subsequence (LCS)</option>
+                <option value="levenshtein">Levenshtein Distance</option>
+                <option value="hamming">Hamming Distance</option>
+                <option value="lcs-substring">Longest Common Substring</option>
+                <option value="char-compare">Character-by-Character Comparison</option>
+            </select>
+        </div>
+
         <div class="button-container">
-            <button id="findLcsButton" class="action-button active" aria-label="Find the longest common subsequence">
-                Find LCS
-            </button>
-            <button id="compareStringsButton" class="action-button" aria-label="Compare strings character-by-character">
-                Compare Strings
+            <button id="computeButton" class="action-button active" aria-label="Compute the selected algorithm">
+                Compute
             </button>
         </div>
 
