@@ -201,9 +201,18 @@ function formatAlignment(str, codes) {
     };
 
     let formatted = '';
+    let codeIndex = 0; // Separate index for codes array
+
     for (let i = 0; i < str.length; i++) {
         const char = str[i];
-        const code = codes[i];
+
+        // Skip newline characters - they're just for display formatting and don't have codes
+        if (char === '\n') {
+            formatted += '<br>';
+            continue;
+        }
+
+        const code = codes[codeIndex];
         const className = classNames[code];
 
         // Escape HTML to prevent XSS
@@ -217,6 +226,8 @@ function formatAlignment(str, codes) {
         } else {
             formatted += escapedChar;
         }
+
+        codeIndex++;
     }
     return formatted;
 }
@@ -225,11 +236,20 @@ function formatAlignment(str, codes) {
 function formatSideBySide(aligned1, aligned2, codes) {
     let formatted1 = '';
     let formatted2 = '';
+    let codeIndex = 0; // Separate index for codes array
 
     for (let i = 0; i < aligned1.length; i++) {
         const char1 = aligned1[i];
         const char2 = aligned2[i];
-        const code = codes[i];
+
+        // Skip newline characters - they're just for display formatting and don't have codes
+        if (char1 === '\n' || char2 === '\n') {
+            formatted1 += '<br>';
+            formatted2 += '<br>';
+            continue;
+        }
+
+        const code = codes[codeIndex];
 
         // Escape HTML to prevent XSS
         const escapedChar1 = escapeHtml(char1);
@@ -258,6 +278,8 @@ function formatSideBySide(aligned1, aligned2, codes) {
             formatted1 += escapedChar1;
             formatted2 += escapedChar2;
         }
+
+        codeIndex++;
     }
 
     return { formatted1, formatted2 };
