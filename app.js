@@ -271,10 +271,23 @@ function levenshteinDistance(x, y) {
 }
 
 // Hamming Distance Algorithm
-function hammingDistance(x, y) {
-    // Hamming distance requires equal length strings
+function hammingDistance(x, y, shouldTruncate = true) {
+    const originalLength1 = x.length;
+    const originalLength2 = y.length;
+    let truncated = false;
+    let truncatedLength = 0;
+
+    // If strings are not equal length, truncate to the shorter length
     if (x.length !== y.length) {
-        throw new Error('Hamming distance requires strings of equal length');
+        if (shouldTruncate) {
+            truncated = true;
+            const minLength = Math.min(x.length, y.length);
+            truncatedLength = minLength;
+            x = x.substring(0, minLength);
+            y = y.substring(0, minLength);
+        } else {
+            throw new Error('Hamming distance requires strings of equal length');
+        }
     }
 
     let first = '';
@@ -298,7 +311,11 @@ function hammingDistance(x, y) {
         second,
         codes,
         distance,
-        similarity: x.length > 0 ? ((x.length - distance) / x.length) * 100 : 100
+        similarity: x.length > 0 ? ((x.length - distance) / x.length) * 100 : 100,
+        truncated,
+        truncatedLength,
+        originalLength1,
+        originalLength2
     };
 }
 
@@ -333,49 +350,35 @@ function longestCommonSubstring(x, y) {
     const substringStartX = endPosX - maxLength;
     const substringStartY = endPosY - maxLength;
 
-    // Build alignment to show where the substring appears
+    // Build alignment to show where the substring appears in both strings
     let first = '';
     let second = '';
     let codes = [];
 
-    // Simple character-by-character alignment with highlight on common substring
-    const maxLen = Math.max(m, n);
-    for (let i = 0; i < maxLen; i++) {
-        const char1 = i < m ? x[i] : '';
-        const char2 = i < n ? y[i] : '';
+    // Show the substring location in both strings
+    // Use code 5 to mark the actual longest common substring
+    for (let i = 0; i < m; i++) {
+        first += x[i];
+        const inSubstringX = i >= substringStartX && i < substringStartX + maxLength;
+        codes.push(inSubstringX ? 5 : 0);
+    }
 
-        if (char1 === '' && char2 !== '') {
-            // String 1 is shorter
-            first += '-';
-            second += char2;
-            codes.push(2);
-        } else if (char2 === '' && char1 !== '') {
-            // String 2 is shorter
-            first += char1;
-            second += '-';
-            codes.push(1);
-        } else if (char1 === char2) {
-            // Characters match
-            first += char1;
-            second += char2;
-            // Check if this is part of the longest common substring
-            const inSubstringX = i >= substringStartX && i < substringStartX + maxLength;
-            const inSubstringY = i >= substringStartY && i < substringStartY + maxLength;
-            // Mark as match (will highlight all matches, but the substring is most important)
-            codes.push(3);
-        } else {
-            // Characters differ
-            first += char1;
-            second += char2;
-            codes.push(0);
-        }
+    // Second string codes
+    let secondCodes = [];
+    for (let i = 0; i < n; i++) {
+        second += y[i];
+        const inSubstringY = i >= substringStartY && i < substringStartY + maxLength;
+        secondCodes.push(inSubstringY ? 5 : 0);
     }
 
     return {
         first,
         second,
         codes,
+        secondCodes, // Store separate codes for second string
         substring,
+        substringStartX,
+        substringStartY,
         length: maxLength,
         similarity: maxLength > 0 ? (maxLength / Math.max(m, n)) * 100 : 0
     };
@@ -387,7 +390,8 @@ function formatAlignment(str, codes) {
         0: 'align-mismatch',      // mismatch (different chars at same position)
         1: 'align-gap-string2',   // gap in string2 (char only in string1 - removed)
         2: 'align-gap-string1',   // gap in string1 (char only in string2 - added)
-        3: 'align-match'          // match (same char in both)
+        3: 'align-match',         // match (same char in both)
+        5: 'align-substring'      // longest common substring location
     };
 
     let formatted = '';
@@ -408,10 +412,10 @@ function formatAlignment(str, codes) {
         // Escape HTML to prevent XSS
         const escapedChar = escapeHtml(char);
 
-        if (className && code !== 3) {
+        if (className && (code === 3 || code === 5)) {
+            // Match or substring - highlight
             formatted += `<span class="${className}">${escapedChar}</span>`;
-        } else if (code === 3) {
-            // Match - highlight as common subsequence
+        } else if (className && code !== 3 && code !== 5) {
             formatted += `<span class="${className}">${escapedChar}</span>`;
         } else {
             formatted += escapedChar;
@@ -589,16 +593,12 @@ function computeLCS() {
 
                 case 'hamming':
                     // Compute Hamming Distance
-                    if (processedString1.length !== processedString2.length) {
-                        showError('⚠️ Hamming distance requires strings of equal length. The strings will be truncated or padded to match.');
-                        // Pad or truncate to make them equal length
-                        const maxLen = Math.max(processedString1.length, processedString2.length);
-                        processedString1 = processedString1.padEnd(maxLen, ' ');
-                        processedString2 = processedString2.padEnd(maxLen, ' ');
-                    }
-                    result = hammingDistance(processedString1, processedString2);
+                    result = hammingDistance(processedString1, processedString2, true);
                     resultString = result.distance.toString();
                     additionalInfo = ` (Similarity: ${result.similarity.toFixed(1)}%)`;
+                    if (result.truncated) {
+                        additionalInfo += ` - Truncated to ${result.truncatedLength} chars (was ${result.originalLength1} and ${result.originalLength2})`;
+                    }
                     break;
 
                 case 'lcs-substring':
@@ -653,9 +653,29 @@ function computeLCS() {
             }
             document.getElementById('lcsLength').textContent = lengthText;
 
+            // Update alignment title and visibility based on algorithm
+            const alignmentTitleElement = document.getElementById('alignmentTitle');
+            const alignmentDisplay = document.getElementById('alignmentDisplay');
+            const sideBySideDisplay = document.getElementById('sideBySideDisplay');
+
+            const alignmentTitles = {
+                'lcs': 'Alignment:',
+                'levenshtein': 'Edit Alignment:',
+                'hamming': 'Character Comparison:',
+                'lcs-substring': 'Substring Location:',
+                'char-compare': 'Position Comparison:'
+            };
+
+            if (alignmentTitleElement) {
+                alignmentTitleElement.textContent = alignmentTitles[algorithmMode] || 'Alignment:';
+            }
+
             // Display alignment view (with HTML escaping in formatAlignment)
-            document.getElementById('alignedString1').innerHTML = formatAlignment(displayFirst, result.codes);
-            document.getElementById('alignedString2').innerHTML = formatAlignment(displaySecond, result.codes);
+            // For longest common substring, use separate codes for each string
+            const codes1 = result.secondCodes ? result.codes : result.codes;
+            const codes2 = result.secondCodes ? result.secondCodes : result.codes;
+            document.getElementById('alignedString1').innerHTML = formatAlignment(displayFirst, codes1);
+            document.getElementById('alignedString2').innerHTML = formatAlignment(displaySecond, codes2);
 
             // Display side-by-side view (with HTML escaping in formatSideBySide)
             const sideBySide = formatSideBySide(displayFirst, displaySecond, result.codes);
