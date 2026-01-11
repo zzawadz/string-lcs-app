@@ -36,7 +36,10 @@ function escapeHtml(unsafe) {
 // View mode state (alignment or side-by-side)
 let currentViewMode = 'alignment'; // 'alignment' or 'side-by-side'
 
-// Comparison mode state ('lcs' or 'char-compare')
+// Algorithm mode state
+let algorithmMode = 'lcs'; // 'lcs', 'levenshtein', 'hamming', 'lcs-substring', 'char-compare'
+
+// Legacy comparison mode for backwards compatibility
 let comparisonMode = 'lcs';
 
 function longestCommonBacktrack(x, y) {
@@ -189,6 +192,193 @@ function getComparisonString(aligned1, aligned2) {
         }
     }
     return result;
+}
+
+// Levenshtein Distance Algorithm
+function levenshteinDistance(x, y) {
+    const m = x.length;
+    const n = y.length;
+
+    // Initialize DP table
+    const dp = Array(m + 1).fill(null).map(() => Array(n + 1).fill(0));
+
+    // Base cases
+    for (let i = 0; i <= m; i++) {
+        dp[i][0] = i;
+    }
+    for (let j = 0; j <= n; j++) {
+        dp[0][j] = j;
+    }
+
+    // Fill DP table
+    for (let i = 1; i <= m; i++) {
+        for (let j = 1; j <= n; j++) {
+            if (x[i - 1] === y[j - 1]) {
+                dp[i][j] = dp[i - 1][j - 1];
+            } else {
+                dp[i][j] = 1 + Math.min(
+                    dp[i - 1][j],     // deletion
+                    dp[i][j - 1],     // insertion
+                    dp[i - 1][j - 1]  // substitution
+                );
+            }
+        }
+    }
+
+    // Backtrack to build alignment
+    let i = m, j = n;
+    let first = '';
+    let second = '';
+    let codes = [];
+
+    while (i > 0 || j > 0) {
+        if (i > 0 && j > 0 && x[i - 1] === y[j - 1]) {
+            // Match
+            first = x[i - 1] + first;
+            second = y[j - 1] + second;
+            codes.unshift(3);
+            i--;
+            j--;
+        } else if (i > 0 && j > 0 && dp[i][j] === dp[i - 1][j - 1] + 1) {
+            // Substitution (mismatch)
+            first = x[i - 1] + first;
+            second = y[j - 1] + second;
+            codes.unshift(0);
+            i--;
+            j--;
+        } else if (i > 0 && dp[i][j] === dp[i - 1][j] + 1) {
+            // Deletion (gap in string2)
+            first = x[i - 1] + first;
+            second = '-' + second;
+            codes.unshift(1);
+            i--;
+        } else {
+            // Insertion (gap in string1)
+            first = '-' + first;
+            second = y[j - 1] + second;
+            codes.unshift(2);
+            j--;
+        }
+    }
+
+    return {
+        first,
+        second,
+        codes,
+        distance: dp[m][n],
+        similarity: m + n > 0 ? (1 - dp[m][n] / Math.max(m, n)) * 100 : 100
+    };
+}
+
+// Hamming Distance Algorithm
+function hammingDistance(x, y) {
+    // Hamming distance requires equal length strings
+    if (x.length !== y.length) {
+        throw new Error('Hamming distance requires strings of equal length');
+    }
+
+    let first = '';
+    let second = '';
+    let codes = [];
+    let distance = 0;
+
+    for (let i = 0; i < x.length; i++) {
+        first += x[i];
+        second += y[i];
+        if (x[i] === y[i]) {
+            codes.push(3); // Match
+        } else {
+            codes.push(0); // Mismatch
+            distance++;
+        }
+    }
+
+    return {
+        first,
+        second,
+        codes,
+        distance,
+        similarity: x.length > 0 ? ((x.length - distance) / x.length) * 100 : 100
+    };
+}
+
+// Longest Common Substring Algorithm
+function longestCommonSubstring(x, y) {
+    const m = x.length;
+    const n = y.length;
+
+    // Initialize DP table
+    const dp = Array(m + 1).fill(null).map(() => Array(n + 1).fill(0));
+
+    let maxLength = 0;
+    let endPosX = 0;
+    let endPosY = 0;
+
+    // Fill DP table
+    for (let i = 1; i <= m; i++) {
+        for (let j = 1; j <= n; j++) {
+            if (x[i - 1] === y[j - 1]) {
+                dp[i][j] = dp[i - 1][j - 1] + 1;
+                if (dp[i][j] > maxLength) {
+                    maxLength = dp[i][j];
+                    endPosX = i;
+                    endPosY = j;
+                }
+            }
+        }
+    }
+
+    // Extract the longest common substring
+    const substring = x.substring(endPosX - maxLength, endPosX);
+    const substringStartX = endPosX - maxLength;
+    const substringStartY = endPosY - maxLength;
+
+    // Build alignment to show where the substring appears
+    let first = '';
+    let second = '';
+    let codes = [];
+
+    // Simple character-by-character alignment with highlight on common substring
+    const maxLen = Math.max(m, n);
+    for (let i = 0; i < maxLen; i++) {
+        const char1 = i < m ? x[i] : '';
+        const char2 = i < n ? y[i] : '';
+
+        if (char1 === '' && char2 !== '') {
+            // String 1 is shorter
+            first += '-';
+            second += char2;
+            codes.push(2);
+        } else if (char2 === '' && char1 !== '') {
+            // String 2 is shorter
+            first += char1;
+            second += '-';
+            codes.push(1);
+        } else if (char1 === char2) {
+            // Characters match
+            first += char1;
+            second += char2;
+            // Check if this is part of the longest common substring
+            const inSubstringX = i >= substringStartX && i < substringStartX + maxLength;
+            const inSubstringY = i >= substringStartY && i < substringStartY + maxLength;
+            // Mark as match (will highlight all matches, but the substring is most important)
+            codes.push(3);
+        } else {
+            // Characters differ
+            first += char1;
+            second += char2;
+            codes.push(0);
+        }
+    }
+
+    return {
+        first,
+        second,
+        codes,
+        substring,
+        length: maxLength,
+        similarity: maxLength > 0 ? (maxLength / Math.max(m, n)) * 100 : 0
+    };
 }
 
 function formatAlignment(str, codes) {
@@ -364,8 +554,8 @@ function computeLCS() {
     const processingOptions = getProcessingOptions();
 
     // Apply preprocessing
-    const processedString1 = preprocessString(string1, processingOptions);
-    const processedString2 = preprocessString(string2, processingOptions);
+    let processedString1 = preprocessString(string1, processingOptions);
+    let processedString2 = preprocessString(string2, processingOptions);
 
     // Show estimated time if needed
     const timeEstimate = comparisonMode === 'lcs' ? estimateTime(processedString1.length, processedString2.length) : '';
@@ -380,16 +570,53 @@ function computeLCS() {
         try {
             let result;
             let resultString;
+            let additionalInfo = '';
 
-            // Choose algorithm based on comparison mode
-            if (comparisonMode === 'lcs') {
-                // Compute LCS
-                result = longestCommonSubseq(processedString1, processedString2);
-                resultString = getLCSString(result.first, result.second);
-            } else {
-                // Character-by-character comparison
-                result = characterByCharacterCompare(processedString1, processedString2);
-                resultString = getComparisonString(result.first, result.second);
+            // Choose algorithm based on algorithm mode
+            switch (algorithmMode) {
+                case 'lcs':
+                    // Compute LCS
+                    result = longestCommonSubseq(processedString1, processedString2);
+                    resultString = getLCSString(result.first, result.second);
+                    break;
+
+                case 'levenshtein':
+                    // Compute Levenshtein Distance
+                    result = levenshteinDistance(processedString1, processedString2);
+                    resultString = result.distance.toString();
+                    additionalInfo = ` (Similarity: ${result.similarity.toFixed(1)}%)`;
+                    break;
+
+                case 'hamming':
+                    // Compute Hamming Distance
+                    if (processedString1.length !== processedString2.length) {
+                        showError('⚠️ Hamming distance requires strings of equal length. The strings will be truncated or padded to match.');
+                        // Pad or truncate to make them equal length
+                        const maxLen = Math.max(processedString1.length, processedString2.length);
+                        processedString1 = processedString1.padEnd(maxLen, ' ');
+                        processedString2 = processedString2.padEnd(maxLen, ' ');
+                    }
+                    result = hammingDistance(processedString1, processedString2);
+                    resultString = result.distance.toString();
+                    additionalInfo = ` (Similarity: ${result.similarity.toFixed(1)}%)`;
+                    break;
+
+                case 'lcs-substring':
+                    // Compute Longest Common Substring
+                    result = longestCommonSubstring(processedString1, processedString2);
+                    resultString = result.substring || '(no common substring)';
+                    additionalInfo = result.substring ? ` (Similarity: ${result.similarity.toFixed(1)}%)` : '';
+                    break;
+
+                case 'char-compare':
+                    // Character-by-character comparison
+                    result = characterByCharacterCompare(processedString1, processedString2);
+                    resultString = getComparisonString(result.first, result.second);
+                    break;
+
+                default:
+                    result = longestCommonSubseq(processedString1, processedString2);
+                    resultString = getLCSString(result.first, result.second);
             }
 
             // Postprocess for display (e.g., line-by-line mode)
@@ -399,17 +626,31 @@ function computeLCS() {
 
             // Update header based on mode
             const lcsHeader = document.querySelector('.lcs-header');
-            if (comparisonMode === 'lcs') {
-                lcsHeader.childNodes[0].textContent = 'Longest Common Subsequence: ';
-            } else {
-                lcsHeader.childNodes[0].textContent = 'Comparison Result: ';
-            }
+            const algorithmNames = {
+                'lcs': 'Longest Common Subsequence',
+                'levenshtein': 'Levenshtein Distance',
+                'hamming': 'Hamming Distance',
+                'lcs-substring': 'Longest Common Substring',
+                'char-compare': 'Comparison Result'
+            };
+            lcsHeader.childNodes[0].textContent = (algorithmNames[algorithmMode] || 'Result') + ': ';
 
             // Display results - use textContent for plain text (XSS safe)
             document.getElementById('lcsResult').textContent = displayResult || '(empty)';
-            const lengthText = processingOptions.lineByLine
-                ? `Length: ${resultString.split(LINE_SEPARATOR).filter(l => l).length} lines`
-                : `Length: ${resultString.length}`;
+
+            // Update length display based on algorithm
+            let lengthText = '';
+            if (algorithmMode === 'levenshtein') {
+                lengthText = `Edit Distance: ${resultString}${additionalInfo}`;
+            } else if (algorithmMode === 'hamming') {
+                lengthText = `Hamming Distance: ${resultString}${additionalInfo}`;
+            } else if (algorithmMode === 'lcs-substring') {
+                lengthText = `Length: ${result.length || 0}${additionalInfo}`;
+            } else {
+                lengthText = processingOptions.lineByLine
+                    ? `Length: ${resultString.split(LINE_SEPARATOR).filter(l => l).length} lines`
+                    : `Length: ${resultString.length}`;
+            }
             document.getElementById('lcsLength').textContent = lengthText;
 
             // Display alignment view (with HTML escaping in formatAlignment)
@@ -1595,16 +1836,40 @@ document.addEventListener('DOMContentLoaded', function() {
     updateCharCount('string1', 'charCount1', 'warning1');
     updateCharCount('string2', 'charCount2', 'warning2');
 
-    // Action button event listeners
-    document.getElementById('findLcsButton').addEventListener('click', function() {
-        setComparisonMode('lcs');
-        computeLCS();
-    });
+    // Algorithm selector event listener
+    const algorithmSelector = document.getElementById('algorithmSelector');
+    if (algorithmSelector) {
+        algorithmSelector.addEventListener('change', function() {
+            algorithmMode = this.value;
+            comparisonMode = this.value; // Keep legacy variable in sync
+            checkStaleResults();
+        });
+    }
 
-    document.getElementById('compareStringsButton').addEventListener('click', function() {
-        setComparisonMode('char-compare');
-        computeLCS();
-    });
+    // Compute button event listener
+    const computeButton = document.getElementById('computeButton');
+    if (computeButton) {
+        computeButton.addEventListener('click', function() {
+            computeLCS();
+        });
+    }
+
+    // Legacy button support (for backwards compatibility)
+    const findLcsButton = document.getElementById('findLcsButton');
+    if (findLcsButton) {
+        findLcsButton.addEventListener('click', function() {
+            setComparisonMode('lcs');
+            computeLCS();
+        });
+    }
+
+    const compareStringsButton = document.getElementById('compareStringsButton');
+    if (compareStringsButton) {
+        compareStringsButton.addEventListener('click', function() {
+            setComparisonMode('char-compare');
+            computeLCS();
+        });
+    }
 
     // Copy button event listeners
     document.getElementById('copyLCS').addEventListener('click', copyLCS);
