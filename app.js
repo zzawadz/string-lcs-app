@@ -1187,6 +1187,207 @@ function toggleExportMenu() {
 }
 
 
+// File Upload Functionality
+
+// File size constants (in bytes)
+const FILE_SIZE_WARNING_THRESHOLD = 100 * 1024; // 100 KB
+const FILE_SIZE_LIMIT = 5 * 1024 * 1024; // 5 MB
+
+// Allowed file extensions
+const ALLOWED_EXTENSIONS = ['.txt', '.md', '.json', '.csv', '.log'];
+
+// Current file being previewed
+let currentFileData = null;
+let currentTargetTextarea = null;
+
+// Validate file type
+function isValidFileType(filename) {
+    const extension = filename.substring(filename.lastIndexOf('.')).toLowerCase();
+    return ALLOWED_EXTENSIONS.includes(extension);
+}
+
+// Format file size for display
+function formatFileSize(bytes) {
+    if (bytes === 0) return '0 Bytes';
+    const k = 1024;
+    const sizes = ['Bytes', 'KB', 'MB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return Math.round(bytes / Math.pow(k, i) * 100) / 100 + ' ' + sizes[i];
+}
+
+// Get file extension
+function getFileExtension(filename) {
+    return filename.substring(filename.lastIndexOf('.')).toLowerCase();
+}
+
+// Show file preview modal
+function showFilePreview(file, targetTextareaId) {
+    // Store current file data
+    currentFileData = file;
+    currentTargetTextarea = targetTextareaId;
+
+    // Get modal elements
+    const modal = document.getElementById('filePreviewModal');
+    const fileName = document.getElementById('previewFileName');
+    const fileSize = document.getElementById('previewFileSize');
+    const fileType = document.getElementById('previewFileType');
+    const previewContent = document.getElementById('previewContent');
+    const sizeWarning = document.getElementById('fileSizeWarning');
+
+    // Populate file info
+    fileName.textContent = file.name;
+    fileSize.textContent = formatFileSize(file.size);
+    fileType.textContent = getFileExtension(file.name);
+
+    // Show size warning if needed
+    if (file.size > FILE_SIZE_WARNING_THRESHOLD) {
+        sizeWarning.textContent = file.size > FILE_SIZE_LIMIT
+            ? `⚠️ File size exceeds limit (${formatFileSize(FILE_SIZE_LIMIT)}). Please choose a smaller file.`
+            : `⚠️ This is a large file (${formatFileSize(file.size)}). Loading may take time or affect performance.`;
+        sizeWarning.classList.add('show');
+    } else {
+        sizeWarning.classList.remove('show');
+    }
+
+    // Read file content for preview
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        const content = e.target.result;
+        // Show first 500 characters as preview
+        const preview = content.length > 500 ? content.substring(0, 500) + '\n...\n(preview truncated)' : content;
+        previewContent.textContent = preview;
+    };
+    reader.onerror = function() {
+        previewContent.textContent = 'Error reading file preview.';
+    };
+    reader.readAsText(file);
+
+    // Show modal
+    modal.classList.add('show');
+
+    // Focus the close button for accessibility
+    setTimeout(() => {
+        document.getElementById('closePreview').focus();
+    }, 100);
+
+    // Announce to screen reader
+    announceToScreenReader(`File preview opened for ${file.name}`);
+}
+
+// Hide file preview modal
+function hideFilePreview() {
+    const modal = document.getElementById('filePreviewModal');
+    modal.classList.remove('show');
+    currentFileData = null;
+    currentTargetTextarea = null;
+}
+
+// Load file content into textarea
+function loadFileContent(file, textareaId) {
+    // Check file size limit
+    if (file.size > FILE_SIZE_LIMIT) {
+        showError(`❌ File is too large. Maximum size is ${formatFileSize(FILE_SIZE_LIMIT)}.`);
+        return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        const content = e.target.result;
+        const textarea = document.getElementById(textareaId);
+        textarea.value = content;
+
+        // Update character count
+        const countId = textareaId === 'string1' ? 'charCount1' : 'charCount2';
+        const warningId = textareaId === 'string1' ? 'warning1' : 'warning2';
+        updateCharCount(textareaId, countId, warningId);
+
+        // Check stale results
+        checkStaleResults();
+
+        // Announce success
+        announceToScreenReader(`File ${file.name} loaded successfully into ${textareaId === 'string1' ? 'String 1' : 'String 2'}`);
+    };
+    reader.onerror = function() {
+        showError('❌ Error reading file. Please try again.');
+    };
+    reader.readAsText(file);
+}
+
+// Handle file selection from button
+function handleFileSelect(event, textareaId) {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    // Validate file type
+    if (!isValidFileType(file.name)) {
+        showError(`❌ Invalid file type. Supported formats: ${ALLOWED_EXTENSIONS.join(', ')}`);
+        event.target.value = ''; // Reset file input
+        return;
+    }
+
+    // Show preview modal
+    showFilePreview(file, textareaId);
+
+    // Reset file input so the same file can be selected again
+    event.target.value = '';
+}
+
+// Handle file drop
+function handleFileDrop(event, textareaId) {
+    event.preventDefault();
+    event.stopPropagation();
+
+    // Remove drag-over styling
+    const dropZone = document.getElementById(textareaId === 'string1' ? 'dropZone1' : 'dropZone2');
+    dropZone.classList.remove('drag-over');
+
+    // Get dropped files
+    const files = event.dataTransfer.files;
+    if (files.length === 0) return;
+
+    const file = files[0]; // Only handle first file
+
+    // Validate file type
+    if (!isValidFileType(file.name)) {
+        showError(`❌ Invalid file type. Supported formats: ${ALLOWED_EXTENSIONS.join(', ')}`);
+        return;
+    }
+
+    // Show preview modal
+    showFilePreview(file, textareaId);
+}
+
+// Handle drag over
+function handleDragOver(event) {
+    event.preventDefault();
+    event.stopPropagation();
+    event.dataTransfer.dropEffect = 'copy';
+}
+
+// Handle drag enter
+function handleDragEnter(event, dropZoneId) {
+    event.preventDefault();
+    event.stopPropagation();
+    const dropZone = document.getElementById(dropZoneId);
+    dropZone.classList.add('drag-over');
+}
+
+// Handle drag leave
+function handleDragLeave(event, dropZoneId) {
+    event.preventDefault();
+    event.stopPropagation();
+
+    // Only remove class if leaving the drop zone itself, not child elements
+    const dropZone = document.getElementById(dropZoneId);
+    const rect = dropZone.getBoundingClientRect();
+    const x = event.clientX;
+    const y = event.clientY;
+
+    if (x < rect.left || x >= rect.right || y < rect.top || y >= rect.bottom) {
+        dropZone.classList.remove('drag-over');
+    }
+}
+
 // Initialize event listeners when DOM is loaded
 document.addEventListener('DOMContentLoaded', function() {
     // Add event listeners for textareas
@@ -1271,4 +1472,83 @@ document.addEventListener('DOMContentLoaded', function() {
     if (exportCsvBtn) exportCsvBtn.addEventListener('click', exportToCSV);
     if (exportHtmlBtn) exportHtmlBtn.addEventListener('click', exportToHTML);
     if (exportMdBtn) exportMdBtn.addEventListener('click', exportToMarkdown);
+
+    // File upload event listeners
+    const uploadButton1 = document.getElementById('uploadButton1');
+    const uploadButton2 = document.getElementById('uploadButton2');
+    const fileInput1 = document.getElementById('fileInput1');
+    const fileInput2 = document.getElementById('fileInput2');
+    const dropZone1 = document.getElementById('dropZone1');
+    const dropZone2 = document.getElementById('dropZone2');
+
+    // Upload button clicks
+    if (uploadButton1) {
+        uploadButton1.addEventListener('click', () => fileInput1.click());
+    }
+    if (uploadButton2) {
+        uploadButton2.addEventListener('click', () => fileInput2.click());
+    }
+
+    // File input change events
+    if (fileInput1) {
+        fileInput1.addEventListener('change', (e) => handleFileSelect(e, 'string1'));
+    }
+    if (fileInput2) {
+        fileInput2.addEventListener('change', (e) => handleFileSelect(e, 'string2'));
+    }
+
+    // Drag and drop events for drop zone 1
+    if (dropZone1) {
+        dropZone1.addEventListener('dragover', handleDragOver);
+        dropZone1.addEventListener('dragenter', (e) => handleDragEnter(e, 'dropZone1'));
+        dropZone1.addEventListener('dragleave', (e) => handleDragLeave(e, 'dropZone1'));
+        dropZone1.addEventListener('drop', (e) => handleFileDrop(e, 'string1'));
+    }
+
+    // Drag and drop events for drop zone 2
+    if (dropZone2) {
+        dropZone2.addEventListener('dragover', handleDragOver);
+        dropZone2.addEventListener('dragenter', (e) => handleDragEnter(e, 'dropZone2'));
+        dropZone2.addEventListener('dragleave', (e) => handleDragLeave(e, 'dropZone2'));
+        dropZone2.addEventListener('drop', (e) => handleFileDrop(e, 'string2'));
+    }
+
+    // File preview modal event listeners
+    const closePreview = document.getElementById('closePreview');
+    const cancelLoad = document.getElementById('cancelLoad');
+    const confirmLoad = document.getElementById('confirmLoad');
+    const filePreviewModal = document.getElementById('filePreviewModal');
+
+    if (closePreview) {
+        closePreview.addEventListener('click', hideFilePreview);
+    }
+
+    if (cancelLoad) {
+        cancelLoad.addEventListener('click', hideFilePreview);
+    }
+
+    if (confirmLoad) {
+        confirmLoad.addEventListener('click', () => {
+            if (currentFileData && currentTargetTextarea) {
+                loadFileContent(currentFileData, currentTargetTextarea);
+                hideFilePreview();
+            }
+        });
+    }
+
+    // Close modal when clicking outside
+    if (filePreviewModal) {
+        filePreviewModal.addEventListener('click', (e) => {
+            if (e.target === filePreviewModal) {
+                hideFilePreview();
+            }
+        });
+    }
+
+    // Close modal with Escape key
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && filePreviewModal.classList.contains('show')) {
+            hideFilePreview();
+        }
+    });
 });

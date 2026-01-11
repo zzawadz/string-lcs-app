@@ -41,11 +41,26 @@
         <div class="input-section">
             <div class="input-group">
                 <label for="string1">String 1:</label>
-                <textarea
-                    id="string1"
-                    placeholder="Enter first string..."
-                    aria-label="First string input for LCS comparison"
-                    aria-describedby="charCount1 warning1">Lorem ipsum dolor sit amet consectetur adipiscing elit</textarea>
+                <div class="file-upload-controls">
+                    <button type="button" class="file-upload-button" id="uploadButton1" aria-label="Upload file for String 1">
+                        <span aria-hidden="true">📁</span> Upload File
+                    </button>
+                    <input type="file" id="fileInput1" class="file-input" accept=".txt,.md,.json,.csv,.log" aria-label="File input for String 1" />
+                    <span class="file-upload-hint">or drag & drop file here</span>
+                </div>
+                <div class="textarea-container" id="dropZone1">
+                    <textarea
+                        id="string1"
+                        placeholder="Enter first string or drag & drop a file..."
+                        aria-label="First string input for LCS comparison"
+                        aria-describedby="charCount1 warning1">Lorem ipsum dolor sit amet consectetur adipiscing elit</textarea>
+                    <div class="drop-overlay" id="dropOverlay1">
+                        <div class="drop-message">
+                            <span aria-hidden="true">📁</span>
+                            <div>Drop file here</div>
+                        </div>
+                    </div>
+                </div>
                 <div class="char-counter" aria-live="polite">
                     <span id="charCount1">0 characters</span>
                     <span id="warning1" class="size-warning" role="status"></span>
@@ -53,11 +68,26 @@
             </div>
             <div class="input-group">
                 <label for="string2">String 2:</label>
-                <textarea
-                    id="string2"
-                    placeholder="Enter second string..."
-                    aria-label="Second string input for LCS comparison"
-                    aria-describedby="charCount2 warning2">Lorem dolor sit amet sed do eiusmod tempor elit</textarea>
+                <div class="file-upload-controls">
+                    <button type="button" class="file-upload-button" id="uploadButton2" aria-label="Upload file for String 2">
+                        <span aria-hidden="true">📁</span> Upload File
+                    </button>
+                    <input type="file" id="fileInput2" class="file-input" accept=".txt,.md,.json,.csv,.log" aria-label="File input for String 2" />
+                    <span class="file-upload-hint">or drag & drop file here</span>
+                </div>
+                <div class="textarea-container" id="dropZone2">
+                    <textarea
+                        id="string2"
+                        placeholder="Enter second string or drag & drop a file..."
+                        aria-label="Second string input for LCS comparison"
+                        aria-describedby="charCount2 warning2">Lorem dolor sit amet sed do eiusmod tempor elit</textarea>
+                    <div class="drop-overlay" id="dropOverlay2">
+                        <div class="drop-message">
+                            <span aria-hidden="true">📁</span>
+                            <div>Drop file here</div>
+                        </div>
+                    </div>
+                </div>
                 <div class="char-counter" aria-live="polite">
                     <span id="charCount2">0 characters</span>
                     <span id="warning2" class="size-warning" role="status"></span>
@@ -194,6 +224,36 @@
             </div>
             Created by Zygmunt Zawadzki using <a href="https://claude.ai" target="_blank" rel="noopener noreferrer">Claude Code</a>
         </footer>
+    </div>
+
+    <!-- File Preview Modal -->
+    <div id="filePreviewModal" class="file-preview-modal" role="dialog" aria-labelledby="previewModalTitle" aria-modal="true">
+        <div class="file-preview-content">
+            <div class="file-preview-header">
+                <h2 id="previewModalTitle">File Preview</h2>
+                <button class="preview-close-button" id="closePreview" aria-label="Close preview">×</button>
+            </div>
+            <div class="file-preview-info">
+                <div class="file-info-item">
+                    <strong>File name:</strong> <span id="previewFileName"></span>
+                </div>
+                <div class="file-info-item">
+                    <strong>File size:</strong> <span id="previewFileSize"></span>
+                </div>
+                <div class="file-info-item">
+                    <strong>File type:</strong> <span id="previewFileType"></span>
+                </div>
+                <div id="fileSizeWarning" class="file-size-warning"></div>
+            </div>
+            <div class="file-preview-body">
+                <label for="previewContent">Content preview (first 500 characters):</label>
+                <pre id="previewContent" class="preview-content"></pre>
+            </div>
+            <div class="file-preview-footer">
+                <button class="preview-cancel-button" id="cancelLoad">Cancel</button>
+                <button class="preview-load-button" id="confirmLoad">Load File</button>
+            </div>
+        </div>
     </div>
 
     <script src="app.js"></script>
